@@ -1,0 +1,32 @@
+body            { font-family: sans-serif; background: #eee; }
+h1, h2          { font-family: 'Georgia', serif; margin: 0; color: #190b77}
+/* h1              { border-bottom: 2px solid #eee; } */
+h2              { font-size: 1.2em; }
+p,li            { font-size: 0.8em; }
+
+ul {
+  padding-left:20px;
+}
+
+#header {
+	float: right;
+	width: 400;
+}
+
+#map {
+    margin: 0;
+    padding: 0; 
+    height: 350;
+    width: 80%;
+}
+
+.logos {
+	width: 16;
+	height: 16;
+}
+
+
+a:link    { color: #5f3cee;}       /* unvisited link */
+a:visited { color: #5f3cee;}    /* visited link */
+a:active  { color: #5f3cee;}     /* selected link */
+a:hover   { color: black;}        /* mouse over link */

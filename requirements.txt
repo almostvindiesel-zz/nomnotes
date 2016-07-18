@@ -1,0 +1,6 @@
+flask
+flask-RESTful
+flask-sqlalchemy
+flask-user
+flask-mail
+requests
