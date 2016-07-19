@@ -14,14 +14,14 @@ Bugs
 
 
 Next Up Features
+- Get Login to work with extension
 - User Authentication:        https://pythonhosted.org/Flask-User/basic_app.html
-- Convert to SQL Alchemy:     http://flask-sqlalchemy.pocoo.org/2.1/
-- Post it on the web
-- Implement Bootstrap
+- Host it
+- Implement Bootstrap on show_notes
 
 - Save Images    http://stackoverflow.com/questions/10423670/chrome-extension-that-copies-image-url-on-click
-- Higher Level Categories: [Food OR Place OR Hotel]
 - Add your own comments to a location
+- Higher Level Categories: [Food OR Place OR Hotel]
 - Favorite
 - Star a Location
 - Categorize into high level things
@@ -52,6 +52,8 @@ https://www.sitepoint.com/building-custom-right-click-context-menu-javascript/
     <title>Mars Travel Notes</title>
     <meta name="viewport" content="initial-scale=1.0">
     <meta charset="utf-8">
+    <meta id="hostname" data-name="{{session.hostname}}" >
+
     <link href="/static/style.css" rel="stylesheet">
     <script src="/static/js/jquery-3.0.0.min.js"></script>
     <script>
@@ -77,7 +79,8 @@ https://www.sitepoint.com/building-custom-right-click-context-menu-javascript/
 
         // Create a <script> tag and set the USGS URL as the source.
         var script = document.createElement('script');
-        script.src = 'http://localhost:5000/notes?format=js';
+        var hostname  = $('#hostname').data();
+        script.src = hostname.name + 'notes?format=js';
         
         document.getElementsByTagName('head')[0].appendChild(script);
       }
@@ -130,7 +133,7 @@ https://www.sitepoint.com/building-custom-right-click-context-menu-javascript/
   </head>
   <body>
     <div id="header">
-      <p>Hello, John [My Account] [Contact Us]</p>
+      <p>Hello, <b>{{ user.username }}</b> [My Account] [Contact Us]</p>
 
     </div>
 
@@ -145,6 +148,7 @@ https://www.sitepoint.com/building-custom-right-click-context-menu-javascript/
     www.google.com/maps/search/Sandwichic/@43.77727,11.256281/14z/
     -->
     <div id="notes">
+
 
       <table>
         <tr>

@@ -7,8 +7,17 @@ from sqlalchemy.sql import func
 from sqlalchemy import UniqueConstraint, distinct, func
 from sqlalchemy.exc import IntegrityError
 
+from flaskext.mysql import MySQL
+import MySQLdb
+
+
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://mars:iloveb8con@localhost/nomnotes'
 
 db = SQLAlchemy(app)
+
+print '*'*50
+print db.session
+print '*'*50
 
 
 class User(db.Model, UserMixin):
@@ -36,8 +45,8 @@ class Note(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     location_id  = db.Column(db.Integer, db.ForeignKey('location.id'))
-    note  = db.Column(db.Text)
-    page_url  = db.Column(db.Text)
+    note  = db.Column(db.String(512))
+    page_url  = db.Column(db.String(512))
     added_dt  = db.Column(db.DateTime(timezone=True), server_default=func.now())
     updated_dt  = db.Column(db.DateTime(timezone=True), onupdate=func.now())
     UniqueConstraint('note', 'location_id', name='note_location_constraint')
@@ -61,7 +70,7 @@ class Location(db.Model):
     longitude  = db.Column(db.Float)
     city  = db.Column(db.String(50))
     country  = db.Column(db.String(50))
-    page_url  = db.Column(db.Text)
+    page_url  = db.Column(db.String(512))
     page_title  = db.Column(db.String(255))
     rank  = db.Column(db.String(50))
     rating  = db.Column(db.String(20))
@@ -116,7 +125,7 @@ class LocationParent(db.Model):
 class SavedUrl(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
-    url  = db.Column(db.Text, unique=True)
+    url  = db.Column(db.String(512), unique=True)
     title  = db.Column(db.String(255))
     city  = db.Column(db.String(50))
     country  = db.Column(db.String(255))

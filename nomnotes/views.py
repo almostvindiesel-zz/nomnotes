@@ -18,6 +18,8 @@ from nomnotes import app
 from nomnotes import models
 from nomnotes.models import User, Note, Location, LocationCategory, LocationParent, SavedUrl, db
 from sqlalchemy.exc import IntegrityError
+from flaskext.mysql import MySQL
+import MySQLdb
 
 
 
@@ -31,7 +33,7 @@ def add_note():
     #!!! add more conditions to fail gracefully
     if request.method == 'POST':
 
-        user_id = 1 # !!!
+        user_id = session['user_id']
         note = request.form['note']
         source = find_source_based_on_url(request.form['page_url'])
         name = request.form['name']
@@ -39,13 +41,13 @@ def add_note():
         longitude = request.form['longitude']
         city = request.form['city']
         country = '' # !!! 
-        parent_id = '' # !!!
+        parent_id = 0 # !!!
         page_url = request.form['page_url']
         page_title = request.form['page_title']
 
         rank = '' # !!! 
         rating = request.form['rating']
-        reviews = request.form['reviews']
+        reviews = request.form['reviews'].replace(',', '')
         categoriesStr = request.form['categories']
         categories = categoriesStr.split(",")
         #print categories
@@ -92,7 +94,7 @@ def add_note():
 @app.route('/addurl', methods=['POST'])
 def add_url():
     if request.method == 'POST' and request.form.get('url', None):
-        #Persist variables posted via the form to local variables
+        #Persist variables posted via the form to locations_result_set variables
         title = request.form['title']
         url = request.form['url']
         user_id = "" # !!! add later
@@ -162,25 +164,34 @@ def insert_categories_into_db(location_id,categories):
 
 @app.route('/createdb')
 def create_database(): 
-    db.session.execute.create_all()
-    return "created dbs"
+
+    Location.__table__.create(db.session.bind, checkfirst=True)
+    LocationParent.__table__.create(db.session.bind, checkfirst=True)
+    LocationCategory.__table__.create(db.session.bind, checkfirst=True)
+    User.__table__.create(db.session.bind, checkfirst=True)
+    Note.__table__.create(db.session.bind, checkfirst=True)
+    SavedUrl.__table__.create(db.session.bind, checkfirst=True)
+
+    #db.session.execute.create_all()
+
+    return "created tables"
 
 
 @app.route('/dropandcreatedb')
 def drop_and_createdb(): 
-    #db.session.execute("drop table if exists user")
+    db.session.execute("drop table if exists saved_url")
     db.session.execute("drop table if exists note")
-    db.session.execute("drop table if exists location")
+    db.session.execute("drop table if exists user")
     db.session.execute("drop table if exists location_category")
     db.session.execute("drop table if exists location_parent")
-    db.session.execute("drop table if exists saved_url")
-    db.create_all()    
+    db.session.execute("drop table if exists location")
+    create_database()    
     return "drop and created all dbs"
 
 
 @app.route('/truncatedb')
 def truncate_note_database(): 
-    #db.session.execute("delete from user where id >= 1")
+    db.session.execute("delete from user where id >= 1")
     db.session.execute("delete from note where id >= 1")
     db.session.execute("delete from location where id >= 1")
     db.session.execute("delete from location_category where id >= 1")
@@ -213,11 +224,14 @@ def initialize_session_vars():
             if session['city'] == 'reset':
                 session['city'] = ''
 
+    session['hostname'] = app.config['HOSTNAME']
+
 
 
 @app.route('/notes', methods=['GET'])
 @login_required 
 def show_notes():
+
 
     #Get Session Filters and Convert them for use with sql where statements
     initialize_session_vars()
@@ -276,6 +290,8 @@ def show_notes():
     sql = "select distinct city from location"
     cities = db.session.execute(sql)
 
+    user = User.query.filter_by(id = session['user_id'])
+
 
     #Unique Categories for Filtering in the UX
     #!!! Should updated the results based on the city / category filter
@@ -284,7 +300,7 @@ def show_notes():
 
     return render_template('show_notes.html', locations_json=locations_json, saved_urls=saved_urls, \
                             cities=cities, categories=categories, current_city=session['city'], \
-                            current_category=session['category'])
+                            current_category=session['category'], user=user[0])
     #return dumps(locations_json)
 
 

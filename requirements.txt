@@ -3,4 +3,7 @@ flask-RESTful
 flask-sqlalchemy
 flask-user
 flask-mail
+flask-MySQL
+psycopg2==2.6.1
+Flask-Migrate==1.8.0
 requests
