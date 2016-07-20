@@ -22,7 +22,6 @@ from flaskext.mysql import MySQL
 import MySQLdb
 
 
-
 db_adapter = SQLAlchemyAdapter(db, User)        # Register the User model
 user_manager = UserManager(db_adapter, app)     # Initialize Flask-User
 mail = Mail(app)  

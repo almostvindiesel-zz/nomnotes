@@ -11,13 +11,8 @@ from flaskext.mysql import MySQL
 import MySQLdb
 
 
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://mars:iloveb8con@localhost/nomnotes'
-
 db = SQLAlchemy(app)
 
-print '*'*50
-print db.session
-print '*'*50
 
 
 class User(db.Model, UserMixin):

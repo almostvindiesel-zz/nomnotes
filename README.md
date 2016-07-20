@@ -11,7 +11,3 @@ export NOMNOTES_SETTINGS=/Users/mars/code/nomnotes/nomnotes/settings.cfg
 python runserver.py
 
 
-# ############################################################ MYSQL DATABASE CREATION
-
-create database nomnotes owner mars encoding 'utf-8';
-create user mars with password 'iloveb8con';
