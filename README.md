@@ -8,10 +8,10 @@ virtualenv venv
 . venv/bin/activate
 export PATH=$PATH:/usr/local/mysql/bin
 pip install -r requirements.txt
-brew install pkg-config libffi
-export PKG_CONFIG_PATH=/usr/local/Cellar/libffi/3.0.13/lib/pkgconfig/
-
-export NOMNOTES_SETTINGS=/Users/mars/code/nomnotes/nomnotes/settings.cfg
+brew install pkg-config libffi													#not sure if this is needed.
+export PKG_CONFIG_PATH=/usr/local/Cellar/libffi/3.0.13/lib/pkgconfig/			#not sure if this is needed.
 python runserver.py
 
 
+
+#export NOMNOTES_SETTINGS=/Users/mars/code/nomnotes/nomnotes/settings.cfg

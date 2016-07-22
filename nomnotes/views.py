@@ -14,12 +14,16 @@ from flask_mail import Mail
 #requests.packages.urllib3.disable_warnings()
 from sqlalchemy import UniqueConstraint, distinct, func
 from flask import Flask, request, session, g, redirect, url_for, abort, render_template, render_template_string, flash, jsonify, make_response
-from nomnotes import app
-from nomnotes import models
-from nomnotes.models import User, Note, Location, LocationCategory, LocationParent, SavedUrl, db
 from sqlalchemy.exc import IntegrityError
 from flaskext.mysql import MySQL
 import MySQLdb
+
+if(os.environ["NOMNOMTES_ENVIRONMENT"] == 'local'):
+    from nomnotes import app
+elif(os.environ["NOMNOMTES_ENVIRONMENT"] == 'pythonanywhere'):
+    from app import app
+
+from models import User, Note, Location, LocationCategory, LocationParent, SavedUrl, db
 
 
 db_adapter = SQLAlchemyAdapter(db, User)        # Register the User model
@@ -226,6 +230,11 @@ def initialize_session_vars():
     session['hostname'] = app.config['HOSTNAME']
 
 
+@app.route('/', methods=['GET'])
+@login_required 
+def homepage_redirect():
+    return redirect(url_for('show_notes'))
+
 
 @app.route('/notes', methods=['GET'])
 @login_required 
@@ -307,6 +316,3 @@ def show_notes():
 def shutdown_session(exception=None):
     db.session.remove()
 
-
-if __name__ == '__main__':
-    app.run(debug=True)

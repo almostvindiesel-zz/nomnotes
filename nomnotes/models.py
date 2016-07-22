@@ -1,6 +1,6 @@
+import os
 import sqlite3
 from flask import Flask, g
-from nomnotes import app
 from flask_sqlalchemy import SQLAlchemy
 from flask_user import login_required, UserManager, UserMixin, SQLAlchemyAdapter
 from sqlalchemy.sql import func
@@ -9,6 +9,11 @@ from sqlalchemy.exc import IntegrityError
 
 from flaskext.mysql import MySQL
 import MySQLdb
+
+if(os.environ["NOMNOMTES_ENVIRONMENT"] == 'local'):
+    from nomnotes import app
+elif(os.environ["NOMNOMTES_ENVIRONMENT"] == 'pythonanywhere'):
+    from app import app
 
 
 db = SQLAlchemy(app)
@@ -143,7 +148,6 @@ def connect_db():
     rv = sqlite3.connect(app.config['DATABASE'])
     rv.row_factory = sqlite3.Row
     return rv
-
 
 def init_db():  
     """Initializes the database."""

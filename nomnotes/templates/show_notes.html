@@ -80,9 +80,10 @@ https://www.sitepoint.com/building-custom-right-click-context-menu-javascript/
         // Create a <script> tag and set the USGS URL as the source.
         var script = document.createElement('script');
         var hostname  = $('#hostname').data();
-        script.src = hostname.name + 'notes?format=js';
-        
+        script.src = hostname.name + '/notes?format=js';
+              
         document.getElementsByTagName('head')[0].appendChild(script);
+
       }
 
       // Loop through the results array and place a marker for each set of coordinates.
@@ -152,6 +153,22 @@ https://www.sitepoint.com/building-custom-right-click-context-menu-javascript/
 
       <table>
         <tr>
+          <td><p>Countries:</p></td>
+          <td><p>tbd...
+            {% if current_country %}
+              <a href='/notes?city=reset'>[ reset ]</a> 
+            {% endif %}
+            {% for country in countries %}
+              [<a href='/notes?city={{ city.city }}'>
+              {% if current_city == city.city %}
+                <b>{{ country.country }}</b>
+              {% else %}
+                {{ country.country }}
+              {% endif %}
+              </a>] 
+            {% endfor %}
+          </p></td>
+        </tr>        <tr>
           <td><p>Cities:</p></td>
           <td><p>
             {% if current_city %}
