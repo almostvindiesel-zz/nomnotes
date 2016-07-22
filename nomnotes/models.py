@@ -125,7 +125,7 @@ class LocationParent(db.Model):
 class SavedUrl(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
-    url  = db.Column(db.String(512), unique=True)
+    url  = db.Column(db.String(255), unique=True)
     title  = db.Column(db.String(255))
     city  = db.Column(db.String(50))
     country  = db.Column(db.String(255))
