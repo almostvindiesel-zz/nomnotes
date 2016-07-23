@@ -11,17 +11,16 @@ Bugs
   https://foursquare.com/v/allantico-vinaio/4d1f5a3a16cfb60c38985061
 
 
-
-
 Next Up Features
 - Get Login to work with extension
-- User Authentication:        https://pythonhosted.org/Flask-User/basic_app.html
-- Host it
+
+- Country Filtering
+- User Auth Via Extension
 - Implement Bootstrap on show_notes
+- Mapping of Higher Level Categories: [Food OR Place OR Hotel]
 
 - Save Images    http://stackoverflow.com/questions/10423670/chrome-extension-that-copies-image-url-on-click
 - Add your own comments to a location
-- Higher Level Categories: [Food OR Place OR Hotel]
 - Favorite
 - Star a Location
 - Categorize into high level things
@@ -122,7 +121,7 @@ https://www.sitepoint.com/building-custom-right-click-context-menu-javascript/
         bounds.extend(marker.position);
         map.fitBounds(bounds);
         var listener = google.maps.event.addListener(map, "idle", function() { 
-          if (map.getZoom() > 16) map.setZoom(13); 
+          if (map.getZoom() > 16) map.setZoom(12); 
           google.maps.event.removeListener(listener); 
         });
 
@@ -156,7 +155,7 @@ https://www.sitepoint.com/building-custom-right-click-context-menu-javascript/
           <td><p>Countries:</p></td>
           <td><p>tbd...
             {% if current_country %}
-              <a href='/notes?city=reset'>[ reset ]</a> 
+              <a href='/notes?city=reset'>[reset]</a> 
             {% endif %}
             {% for country in countries %}
               [<a href='/notes?city={{ city.city }}'>
@@ -172,16 +171,14 @@ https://www.sitepoint.com/building-custom-right-click-context-menu-javascript/
           <td><p>Cities:</p></td>
           <td><p>
             {% if current_city %}
-              <a href='/notes?city=reset'>[ reset ]</a> 
+              <a href='/notes?city=reset'>[reset]</a> 
             {% endif %}
             {% for city in cities %}
-              [<a href='/notes?city={{ city.city }}'>
               {% if current_city == city.city %}
-                <b>{{ city.city }}</b>
+               [<a href='/notes?city={{ city.city }}'><b>{{ city.city }}</b></a>]
               {% else %}
-                {{ city.city }}
+                [<a href='/notes?city={{ city.city }}'>{{city.city}}</a>]
               {% endif %}
-              </a>] 
             {% endfor %}
           </p></td>
         </tr>
@@ -192,13 +189,12 @@ https://www.sitepoint.com/building-custom-right-click-context-menu-javascript/
             <a href='/notes?category=reset'>[ reset ]</a> 
           {% endif %}
           {% for category in categories %}
-            [<a href='/notes?category={{ category.category }}'>
             {% if (current_category == category.category) %}
-              <b>{{ category.category }}</b> 
+              [<a href='/notes?category={{ category.category }}'><b>{{ category.category }}</b></a>]
             {% else %}
-              {{ category.category }}
+              [<a href='/notes?category={{ category.category }}'>{{ category.category }}</a>]
             {% endif %}
-            </a>] 
+            </a>
           {% endfor %}
           </p></td>
         </tr>

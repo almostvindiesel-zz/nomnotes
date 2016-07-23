@@ -9,7 +9,7 @@ if os.environ["NOMNOMTES_ENVIRONMENT"] == 'local':
 	app = Flask(__name__)
 
 	app.config['HOSTNAME'] = 'http://localhost:5000'
-	app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://mars:iloveb8con@localhost/nomnotes'
+	app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://mars:iloveb8con@localhost/nomnotes?charset=utf8'
 	app.config['SQLALCHEMY_POOL_RECYCLE'] = 299
 	app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = 'False'
 

@@ -8,7 +8,7 @@ if os.environ["NOMNOMTES_ENVIRONMENT"] == 'pythonanywhere':
 	    username="almostvindiesel",
 	    password="iloveb8con",
 	    hostname="almostvindiesel.mysql.pythonanywhere-services.com",
-	    databasename="almostvindiesel$nomnotes",
+	    databasename="almostvindiesel$nomnotes?charset=utf8",
 	    )
 	app.config['SQLALCHEMY_DATABASE_URI'] = SQLALCHEMY_DATABASE_URI
 	app.config['SQLALCHEMY_POOL_RECYCLE'] = 299

@@ -19,7 +19,6 @@ elif(os.environ["NOMNOMTES_ENVIRONMENT"] == 'pythonanywhere'):
 db = SQLAlchemy(app)
 
 
-
 class User(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
 
@@ -36,8 +35,7 @@ class User(db.Model, UserMixin):
     active = db.Column('is_active', db.Boolean(), nullable=False, server_default='0')
     first_name = db.Column(db.String(100), nullable=False, server_default='')
     last_name = db.Column(db.String(100), nullable=False, server_default='')
-
-
+    __table_args__ = {'mysql_charset': 'utf8'}
 
 
 #unique the note and page_url
@@ -50,6 +48,7 @@ class Note(db.Model):
     added_dt  = db.Column(db.DateTime(timezone=True), server_default=func.now())
     updated_dt  = db.Column(db.DateTime(timezone=True), onupdate=func.now())
     UniqueConstraint('note', 'location_id', name='note_location_constraint')
+    __table_args__ = {'mysql_charset': 'utf8'}
 
 
     def __init__(self, user_id, location_id, note, page_url):
@@ -79,6 +78,8 @@ class Location(db.Model):
     updated_dt  = db.Column(db.DateTime(timezone=True), onupdate=func.now())
     notes = db.relationship('Note', backref='location', lazy='dynamic')
     categories = db.relationship('LocationCategory', backref='location', lazy='dynamic')
+    __table_args__ = {'mysql_charset': 'utf8'}
+
 
     #!!! not sure if this is working with sqlite...
     UniqueConstraint('name', 'source', name='name_source_constraint')
@@ -103,6 +104,8 @@ class LocationCategory(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     location_id  = db.Column(db.Integer, db.ForeignKey('location.id'))
     category = db.Column(db.String(255))
+    __table_args__ = {'mysql_charset': 'utf8'}
+
 
     def __init__(self, location_id, category):
         self.location_id = location_id
@@ -129,6 +132,7 @@ class SavedUrl(db.Model):
     title  = db.Column(db.String(255))
     city  = db.Column(db.String(50))
     country  = db.Column(db.String(255))
+    __table_args__ = {'mysql_charset': 'utf8'}
 
     def __init__(self, user_id, url, title, city, country):
         self.user_id = user_id

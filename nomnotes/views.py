@@ -96,12 +96,14 @@ def add_note():
 # !!! I may have fucked this up when updateding other functions...
 @app.route('/addurl', methods=['POST'])
 def add_url():
+    # !!! Add some logic to redirect the user to a page to login if not logged in
+
     if request.method == 'POST' and request.form.get('url', None):
         #Persist variables posted via the form to locations_result_set variables
         title = request.form['title']
         url = request.form['url']
-        user_id = "" # !!! add later
-        country = "" # !!! add later
+        user_id = session['user_id']
+        country = " " # !!! add later
 
         #Try to automatically dedect the city of the location by seeing if the title of the page contains the city.
         #Otherwise, default to no city
@@ -117,7 +119,7 @@ def add_url():
         su = SavedUrl(user_id, url, title, saved_url_city, country)
         db.session.add(su)
         db.session.commit()
-        msg = "New saved_url recorded added with id: %s and url: %s " % (su.id, url)
+        msg = "URL Saved %s (%s)" % (title, su.id)
         print msg
         return msg
 
@@ -283,28 +285,35 @@ def show_notes():
 
     ##########################################################################################
 
-    #!!! Get set of external pages saved for reference, filtered by city
+    #!!! Build filters based on the primary attributes: (1) User (2) City (3) Category
     if session['city']:
-        sql_where_statements_saved_url =  " and city='" + session['city'] + "' "
+        where_filter_city =  " and city='" + session['city'] + "' "
     else:
-        sql_where_statements_saved_url = ''
-    sql = "select * from saved_url where 1=1 " + sql_where_statements_saved_url
+        where_filter_city = ' '
 
+    if session['category']:
+        where_filter_category =  " and category='" + session['category'] + "' "
+    else:
+        where_filter_category = ' '
+
+    #!!! Add user id limit
+
+    #Unique Saved urls
+    sql = "select * from saved_url where 1=1 " + where_filter_city
     saved_urls = db.session.execute(sql)
 
-
-    #Unique Cities for Filtering in the UX
-    #!!! Should updated the results based on the city / category filter
-    sql = "select distinct city from location"
+    #Unique Cities, limited by existing selections
+    sql = "select distinct city from location l inner join location_category lc on l.id = lc.location_id where 1=1" + where_filter_city +  where_filter_category
     cities = db.session.execute(sql)
 
+    #Unique Categories, limited by existing selections
+    sql = "select distinct category from location_category lc inner join location l on l.id = lc.location_id where 1=1" + where_filter_city +  where_filter_category
+    categories = db.session.execute(sql)
+
+    #Users !!!
     user = User.query.filter_by(id = session['user_id'])
 
 
-    #Unique Categories for Filtering in the UX
-    #!!! Should updated the results based on the city / category filter
-    sql = "select distinct category from location_category"
-    categories = db.session.execute(sql)
 
     return render_template('show_notes.html', locations_json=locations_json, saved_urls=saved_urls, \
                             cities=cities, categories=categories, current_city=session['city'], \
