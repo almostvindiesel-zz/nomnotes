@@ -1,37 +1,40 @@
-<!-- Next Up
+<!--
 
+EXAMPLE PAGES
 https://foursquare.com/v/gelateria-santa-trinita/4bd30172a8b3a59341d4685f
 https://foursquare.com/v/la-prosciutteria/4ff9be87e4b054fbab829fde
 https://www.tripadvisor.com/Restaurant_Review-g187895-d7975400-Reviews-Panini_Toscani-Florence_Tuscany.html
 https://www.tripadvisor.com/Restaurant_Review-g187895-d6740021-Reviews-Sandwichic-Florence_Tuscany.html
 http://www.yelp.com/biz/konnubio-firenze
 
-Bugs 
+BUGS
 - apostrophy in the name and insert:
   https://foursquare.com/v/allantico-vinaio/4d1f5a3a16cfb60c38985061
 
+FEATURES
 
-Next Up Features
-- Get Login to work with extension
+- Mapping of Higher Level Categories: [Food OR Coffee OR Place]
+- Bootstrap
 
-- Country Filtering
-- User Auth Via Extension
-- Implement Bootstrap on show_notes
-- Mapping of Higher Level Categories: [Food OR Place OR Hotel]
-
+- Change markers based on category of item
+- Add / Delete / Edit Comments
+- Allow end user to change order
 - Save Images    http://stackoverflow.com/questions/10423670/chrome-extension-that-copies-image-url-on-click
-- Add your own comments to a location
-- Favorite
-- Star a Location
-- Categorize into high level things
+
 - OnClick highlights a map item (and vice versa)  
+- Country Filtering
+- Implement Bootstrap on show_notes
+- Include Yelp.com
+
+- Star a Location
   http://stackoverflow.com/questions/2730929/how-to-trigger-the-onclick-event-of-a-marker-on-a-google-maps-v3/2731781#2731781
   https://github.com/hpneo/gmaps/issues/40
 - Directions after clicking on a map
 - Add My Location (Need HTTPS)
-- Include Yelp.com
 - Add Location Cost
 - Sort by (proximity, hours, neighborhood)
+- Show menu after highlighting: https://www.sitepoint.com/building-custom-right-click-context-menu-javascript/
+
 
 Free Form Suggestions
 - Want to take notes from what you liked
@@ -39,41 +42,38 @@ Free Form Suggestions
 - want other people to be able to comment
 - be able to determine which places you liked
 
-  
 
-https://www.sitepoint.com/building-custom-right-click-context-menu-javascript/
+Next Steps
+- iOS App: (a) Location (b) Saving (c) Offline (d)
+- 4s Persistance....
+- NLP: Location-related planning
 
+(a) Organize trip planning with highlighing 
+(b) Enable with 
 
 --> 
 
 <html>
   <head>
-    <title>Mars Travel Notes</title>
+    <title>Nom Notes</title>
     <meta name="viewport" content="initial-scale=1.0">
     <meta charset="utf-8">
     <meta id="hostname" data-name="{{session.hostname}}" >
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <link href="/static/style.css" rel="stylesheet">
-    <script src="/static/js/jquery-3.0.0.min.js"></script>
+    <link href="/static/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/static/css/style.css" rel="stylesheet">
+
+    <script src="/static/js/jquery-2.2.4.min.js"></script>
+    <script src="/static/js/bootstrap.min.js"></script>
+    <!--<script src="/static/js/jquery-3.0.0.min.js"></script>-->
     <script>
 
-/*
-     function myFunction(markernum) {
-
-        google.maps.event.trigger(markers[markernum], 'click');
-
-
-     }
-*/
-     
       var map;
 
       // Clickable list http://marcgrabanski.com/jquery-google-maps-tutorial-basics/
-
       function initialize() {
         map = new google.maps.Map(document.getElementById('map'), {});
-
-
         var pageUrl =  window.location.href;
 
         // Create a <script> tag and set the USGS URL as the source.
@@ -125,121 +125,140 @@ https://www.sitepoint.com/building-custom-right-click-context-menu-javascript/
           google.maps.event.removeListener(listener); 
         });
 
-        //google.maps.event.trigger(markers[markernum], 'click');
-
       }
 
     </script>
+
+
+
+
   </head>
-  <body>
+
+  <!--  Header -->
+  <div class="container-fluid" >
     <div id="header">
-      <p>Hello, <b>{{ user.username }}</b> [My Account] [Contact Us]</p>
-
+      <p>Hello, <b>{{ user.username }}</b> [Share These Recommendations]</p>
     </div>
+  </div>
 
+  <body>
 
-    <div id="map"></div>
-    <script async defer 
-        src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDoemInMQhCNVqELI9R58ass8f7MnzvjPM&libraries=visualization&callback=initialize">
-    </script>
+  <!--  Content -->
+  <div class="container-fluid" >
+    <div class="row">
 
-    <!-- 
-    Potential Results URL:
-    www.google.com/maps/search/Sandwichic/@43.77727,11.256281/14z/
-    -->
-    <div id="notes">
+      <!-- List of Content and Filters -->
+      <div class="col-lg-4">
 
+        <!--Country, City, and Category Filters -->
+        <table>
 
-      <table>
-        <tr>
-          <td><p>Countries:</p></td>
-          <td><p>tbd...
-            {% if current_country %}
-              <a href='/notes?city=reset'>[reset]</a> 
-            {% endif %}
-            {% for country in countries %}
-              [<a href='/notes?city={{ city.city }}'>
-              {% if current_city == city.city %}
-                <b>{{ country.country }}</b>
-              {% else %}
-                {{ country.country }}
+          <!--
+          <tr>
+            <td>Country </td>
+            <td><p>
+
+              {% if current_country %}
+                <a href='/notes?city=reset'>[reset]</a> 
               {% endif %}
-              </a>] 
-            {% endfor %}
-          </p></td>
-        </tr>        <tr>
-          <td><p>Cities:</p></td>
-          <td><p>
-            {% if current_city %}
-              <a href='/notes?city=reset'>[reset]</a> 
-            {% endif %}
-            {% for city in cities %}
-              {% if current_city == city.city %}
-               [<a href='/notes?city={{ city.city }}'><b>{{ city.city }}</b></a>]
-              {% else %}
-                [<a href='/notes?city={{ city.city }}'>{{city.city}}</a>]
+              {% for country in countries %}
+                [<a href='/notes?city={{ city.city }}'>
+                {% if current_city == city.city %}
+                  <b>{{ country.country }}</b>
+                {% else %}
+                  {{ country.country }}
+                {% endif %}
+                </a>] 
+              {% endfor %}
+            </p></td>
+          </tr>        -->
+          <tr>
+            <td><p>City </p></td>
+            <td><p>
+              {% if current_city %}
+                <a href='/notes?city=reset'>[reset]</a> 
               {% endif %}
-            {% endfor %}
-          </p></td>
-        </tr>
-        <tr>
-          <td><p>Categories:</p></td>
-          <td><p>
-          {% if current_category %}
-            <a href='/notes?category=reset'>[ reset ]</a> 
-          {% endif %}
-          {% for category in categories %}
-            {% if (current_category == category.category) %}
-              [<a href='/notes?category={{ category.category }}'><b>{{ category.category }}</b></a>]
-            {% else %}
-              [<a href='/notes?category={{ category.category }}'>{{ category.category }}</a>]
+              {% for city in cities %}
+                {% if current_city == city.city %}
+                 [<a href='/notes?city={{ city.city }}'><b>{{ city.city }}</b></a>]
+                {% else %}
+                  [<a href='/notes?city={{ city.city }}'>{{city.city}}</a>]
+                {% endif %}
+              {% endfor %}
+            </p></td>
+          </tr>
+          <tr>
+            <td><p>Category </p></td>
+            <td><p>
+            {% if current_parent_category %}
+              <a href='/notes?parent_category=reset'>[reset]</a> 
             {% endif %}
-            </a>
-          {% endfor %}
-          </p></td>
-        </tr>
-      </table>
+            {% for item in parent_categories %}
+              {% if (current_parent_category == item.parent_category) %}
+                [<a href='/notes?parent_category={{ item.parent_category }}'><b>{{ item.parent_category }}</b></a>]
+              {% else %}
+                [<a href='/notes?parent_category={{ item.parent_category }}'>{{ item.parent_category }}</a>]
+              {% endif %}
+              </a>
+            {% endfor %}
+            </p></td>
+          </tr>
 
-      <h2>Nom Notes</h2>
+        </table>
 
-      <ul>
-      {% for datum in locations_json %}
-        <li>
-          <b>{{ datum.name }}: </b>
-          {{ datum.rating }} 
-          {% if datum.source == 'tripadvisor' %}of 5.0{% elif datum.source == 'foursquare' %}of 10{% endif %}, 
-          {{ datum.reviews }} reviews
-          <!--[<a target='_blank' href='http://google.com/maps?q={{ datum.page_latitude }},{{ datum.page_longitude }}'>gmaps</a>]-->
-          [<a target='_blank' href='{{ datum.page_url }}'>source</a>]
-          <a target='_blank' href='http://www.google.com/maps/search/{{ datum.name }}/@{{ datum.latitude }},{{ datum.longitude }}/14z'><img class=logos src=/static/img/gmaps-icon.png></a>
+        <!-- List of Coffee Places -->
+        <h2>Nom Notes</h2>
 
-        </li>
-        {% for note in datum.notes %}
           <ul>
-            <li>{{ note | safe }}</li>
+          {% for datum in locations_json %}
+            <li>
+                <b>{{ datum.name }}: </b>
+              {{ datum.rating }} 
+              {% if datum.source == 'tripadvisor' %}of 5.0{% elif datum.source == 'foursquare' %}of 10{% endif %}, 
+              {{ datum.reviews }} reviews
+              <!--[<a target='_blank' href='http://google.com/maps?q={{ datum.page_latitude }},{{ datum.page_longitude }}'>gmaps</a>]-->
+              [<a target='_blank' href='{{ datum.page_url }}'>source</a>]
+              <a target='_blank' href='http://www.google.com/maps/search/{{ datum.name }}/@{{ datum.latitude }},{{ datum.longitude }}/14z'>
+              <img class=logos src=/static/img/gmaps-icon.png></a>
+
+                </li>
+                {% for note in datum.notes %}
+                  <ul>
+                    <li>{{ note | safe }}</li>
+                  </ul>
+                {% endfor %}
+          {% endfor %}
           </ul>
-        {% endfor %}
-      {% else %}
-        <p>No notes!</p>
-      {% endfor %}
-      </ul>
-    </div>
 
-    <h2>Nom Sites</h2>
+        <!-- Saved URLs / Sites -->
+        <h2>Nom Sites</h2>
+          <ul>
+            {% for item in saved_urls %}
+            <li><a target='_blank' href={{ item.url }}>{{ item.title }}</a></li>
+            {% else %}
+            <li>No saved urls</li>
+            {% endfor %}
+          </ul>
+      </div>
+
+            <!-- Google Map -->
+      <div class="col-lg-4">
+        <div id='map'>
+          <script async defer 
+              src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDoemInMQhCNVqELI9R58ass8f7MnzvjPM&libraries=visualization&callback=initialize">
+          </script>
+        </div>
+      </div>
+
+    </div>  
 
 
-    <ul>
-      {% for item in saved_urls %}
-      <li><a target='_blank' href={{ item.url }}>{{ item.title }}</a></li>
-      {% else %}
-      <li>No saved urls</li>
-      {% endfor %}
-    </ul>
+  </div>
 
-
-    <p align=center>MarsRover | Powered by <a target='_blank' href=http://foursquare.com><img class=logos src=/static/img/foursquare-icon.png></a> 
+  <div id='footer'>
+    <p align=center>Nom Notes | Powered by <a target='_blank' href=http://foursquare.com><img class=logos src=/static/img/foursquare-icon.png></a> 
        and <a target='_blank' href=http://tripadvisor.com><img class=logos src=/static/img/tripadvisor-icon.png></a></p>
-
+  </div>
 
   </body>
 </html>
