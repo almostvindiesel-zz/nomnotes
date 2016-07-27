@@ -1,0 +1,79 @@
+body  {
+	background: #eee; 
+}
+
+
+h2 { 
+	font-family: sans-serif; 
+	font-size: 1.2em;
+}
+
+ul, li, p, table, td { 
+	font-family: sans-serif; 
+	font-size: 1.0em;
+}
+
+td { 
+    padding: 1px;
+}
+
+
+
+
+/*
+
+h1, h2          { font-family: 'Georgia', sans-serif; margin: 0; color: #190b77}
+
+h2              { font-size: 1.2em; }
+
+
+li      		{ font-size: 1.0em; serif; }
+td      		{ font-size: 0.8em; serif; }
+*/
+
+ul {
+  padding-left:20px;
+}
+
+
+h2 + ul {
+    margin-top: -3px;
+}
+
+@media (min-width: 1200px) {
+  .container-fluid {
+    width: 1800px;
+  }
+}
+
+
+#header {
+/*	float: right;*/
+/*	width: 550; */
+}
+
+
+
+/*
+#notes {
+	float: right ;
+	width: 55% ;
+}
+*/
+
+#map {
+	width: 100%;
+	height: 500;
+}
+
+
+.logos {
+	width: 16px;
+	height: 16px;
+}
+
+
+a:link    { color: #5f3cee; }       /* unvisited link */
+a:visited { color: #5f3cee;}    /* visited link */
+a:active  { color: #5f3cee;}     /* selected link */
+a:hover   { color: black;}        /* mouse over link */
