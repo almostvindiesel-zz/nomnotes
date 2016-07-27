@@ -59,6 +59,7 @@ def add_note():
         #updated_dt = datetime.utcnow()
         #added_dt = updated_dt
 
+        # If the location exists, just add the note
         if (get_location(name, source)):
             location_id = get_location(name, source)
             #update_location()
@@ -68,15 +69,19 @@ def add_note():
             db.session.add(n)
             db.session.commit()
 
+        # If no location exists, add the location and then add the note
         else:
-            #print '*' * 50
-            #print added_dt
-            #print '*' * 50
+            print '*' * 50
+            print categories
+            print '*' * 50
+            parent_category = classify_parent_category(categories)
+
             l = Location(parent_id, name, source, latitude, \
                          longitude, city, page_url, page_title, \
-                         rank, rating, reviews)
+                         rank, rating, reviews, parent_category)
             db.session.add(l)
             db.session.commit()
+
 
             #insert_location_category()
             location_id = get_location(name, source)
@@ -87,10 +92,84 @@ def add_note():
             db.session.add(n)
             db.session.commit()
 
-        return "added note: " + note
+        return "Added to Nom Notes: " + note
     else:
         return "no note added"
 
+
+@app.route('/updateparentcategory', methods=['GET'])
+def update_parent_category():
+
+    #Get all locations
+    locations = Location.query
+
+    #Update each parent category if the classification is new or doesn't exist
+    for row in locations:
+        #Reclassify the the parent category 
+
+        #Transform category dictionary into a list
+        category_list = []
+        for i, item in enumerate(row.categories):
+            #print '~' * 50
+            #print item.category, i
+            #print '~' * 50
+            category_list.append(item.category) 
+
+        new_parent_category_classification = classify_parent_category(category_list)
+        if(new_parent_category_classification != row.parent_category):
+            new_parent_category = new_parent_category_classification
+            sql = 'update location set parent_category = "%s" where id = "%s"' % (new_parent_category, row.id)
+            db.session.execute(sql)
+            db.session.commit()
+            print "Changed category for %s from %s to %s" % (row.name, row.parent_category, new_parent_category)
+
+    return "done"
+
+
+def classify_parent_category(category_list):
+    for category in category_list:
+        #print '*'*50
+        #print category
+        #print '*'*50
+        if category.lower().find("theater") >= 0:
+            return 'place'
+        elif category.lower().find("park") >= 0:
+            return 'place'
+        elif category.lower().find("museum") >= 0:
+            return 'place'
+        elif category.lower().find("garden") >= 0:
+            return 'place'
+        elif category.lower().find("club") >= 0:
+            return 'place'
+        elif category.lower().find("plaza") >= 0:
+            return 'place'
+        elif category.lower().find("restaurant") >= 0:
+            return 'food'
+        elif category.lower().find("coffee") >= 0:
+            return 'coffee'
+        elif category.lower().find("Caf") >= 0:
+            return 'coffee'
+        elif category.lower().find("breakfast") >= 0:
+            return 'food'
+        elif category.lower().find("bakery") >= 0:
+            return 'food'
+        elif category.lower().find("pizza") >= 0:
+            return 'food'
+        elif category.lower().find("ice cream") >= 0:
+            return 'food'
+        elif category.lower().find("bar") >= 0:
+            return 'food'
+        elif category.lower().find("pub") >= 0:
+            return 'food'
+        elif category.lower().find("cocktail") >= 0:
+            return 'food'
+        elif category.lower().find("donut") >= 0:
+            return 'food'
+        elif category.lower().find("food") >= 0:
+            return 'food'
+        elif category.lower().find("place") >= 0:
+            return 'food'
+    return 'unknown'
 
 # This method adds a web page into the url table
 # !!! I may have fucked this up when updateding other functions...
@@ -216,14 +295,14 @@ def query_db(db, query, args=(), one=False):
 def initialize_session_vars():
     if not ('city' in session):
         session['city'] = ''
-    if not ('category' in session):
-        session['category'] = ''
+    if not ('parent_category' in session):
+        session['parent_category'] = ''
 
     if request.method == 'GET':
-        if request.args.get("category"):
-            session['category'] = request.args.get("category")
-            if session['category'] == 'reset':   
-                session['category'] = ''
+        if request.args.get("parent_category"):
+            session['parent_category'] = request.args.get("parent_category")
+            if session['parent_category'] == 'reset':   
+                session['parent_category'] = ''
         if request.args.get('city'):
             session['city'] = request.args.get('city')
             if session['city'] == 'reset':
@@ -232,10 +311,47 @@ def initialize_session_vars():
     session['hostname'] = app.config['HOSTNAME']
 
 
+@app.route('/deletelocation/id/<int:id>', methods=['GET'])
+@login_required 
+def delete_location(id):
+
+    sql = 'delete from location_category where location_id = "%s"' % (id)
+    db.session.execute(sql)
+    db.session.commit()
+
+    sql = 'delete from note where location_id = "%s"' % (id)
+    db.session.execute(sql)
+    db.session.commit()
+
+    sql = 'delete from location where id = "%s"' % (id)
+    db.session.execute(sql)
+    db.session.commit()
+
+    return redirect(url_for('show_notes'))
+
+@app.route('/deletenote/id/<int:id>', methods=['GET'])
+@login_required 
+def delete_note(id):
+
+    sql = 'delete from note where id = "%s"' % (id)
+    db.session.execute(sql)
+    db.session.commit()
+
+    return redirect(url_for('show_notes'))
+
 @app.route('/', methods=['GET'])
 @login_required 
 def homepage_redirect():
     return redirect(url_for('show_notes'))
+
+
+@app.route('/nnadmin', methods=['GET'])
+@login_required 
+def show_admin_pages():
+
+     return render_template('show_admin.html')
+
+
 
 
 @app.route('/notes', methods=['GET'])
@@ -248,10 +364,10 @@ def show_notes():
 
     #Query the locations, locations_category, and notes tables filtered by city and or category
     #and return a json blob to be used to display the data table and google map
-    if session['category'] and session['city']:
-        locations_result_set = Location.query.filter(Location.categories.any(category=session['category']), Location.city == session['city'])
-    elif session['category']:
-        locations_result_set = Location.query.filter(Location.categories.any(category=session['category']))
+    if session['parent_category'] and session['city']:
+        locations_result_set = Location.query.filter(Location.parent_category == session['parent_category'], Location.city == session['city'])
+    elif session['parent_category']:
+        locations_result_set = Location.query.filter(Location.parent_category == session['parent_category'])
     elif session['city']:
         locations_result_set = Location.query.filter_by(city = session['city'])
     else:
@@ -263,7 +379,9 @@ def show_notes():
         for note_row in row.notes:
             notes_array.append(note_row.note)
         item = dict(
+             id=row.id,
              name=row.name, 
+             parent_category=row.parent_category, 
              notes=notes_array, 
              page_url=row.page_url, 
              latitude=row.latitude, 
@@ -291,8 +409,8 @@ def show_notes():
     else:
         where_filter_city = ' '
 
-    if session['category']:
-        where_filter_category =  " and category='" + session['category'] + "' "
+    if session['parent_category']:
+        where_filter_category =  " and parent_category='" + session['parent_category'] + "' "
     else:
         where_filter_category = ' '
 
@@ -307,8 +425,8 @@ def show_notes():
     cities = db.session.execute(sql)
 
     #Unique Categories, limited by existing selections
-    sql = "select distinct category from location_category lc inner join location l on l.id = lc.location_id where 1=1" + where_filter_city +  where_filter_category
-    categories = db.session.execute(sql)
+    sql = "select distinct parent_category from location_category lc inner join location l on l.id = lc.location_id where 1=1" + where_filter_city +  where_filter_category
+    parent_categories = db.session.execute(sql)
 
     #Users !!!
     user = User.query.filter_by(id = session['user_id'])
@@ -316,8 +434,8 @@ def show_notes():
 
 
     return render_template('show_notes.html', locations_json=locations_json, saved_urls=saved_urls, \
-                            cities=cities, categories=categories, current_city=session['city'], \
-                            current_category=session['category'], user=user[0])
+                            cities=cities, parent_categories=parent_categories, current_city=session['city'], \
+                            current_parent_category=session['parent_category'], user=user[0])
     #return dumps(locations_json)
 
 

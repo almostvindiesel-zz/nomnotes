@@ -74,17 +74,19 @@ class Location(db.Model):
     rank  = db.Column(db.String(50))
     rating  = db.Column(db.String(20))
     reviews  = db.Column(db.Integer)
+    parent_category  = db.Column(db.String(50))
     added_dt  = db.Column(db.DateTime(timezone=True), server_default=func.now())
     updated_dt  = db.Column(db.DateTime(timezone=True), onupdate=func.now())
     notes = db.relationship('Note', backref='location', lazy='dynamic')
     categories = db.relationship('LocationCategory', backref='location', lazy='dynamic')
     __table_args__ = {'mysql_charset': 'utf8'}
 
-
     #!!! not sure if this is working with sqlite...
     UniqueConstraint('name', 'source', name='name_source_constraint')
 
-    def __init__(self, parent_id, name, source, latitude, longitude, city, page_url, page_title, rank, rating, reviews):
+    #!!! parent category
+    #alter table location add column parent_category varchar(50) after reviews;
+    def __init__(self, parent_id, name, source, latitude, longitude, city, page_url, page_title, rank, rating, reviews, parent_category):
         self.parent_id = parent_id
         self.name = name
         self.source = source
@@ -96,6 +98,7 @@ class Location(db.Model):
         self.rank = rank
         self.rating = rating
         self.reviews = reviews
+        self.parent_category = parent_category
 
     def __repr__(self):
         return '<User %r>' % self.name
