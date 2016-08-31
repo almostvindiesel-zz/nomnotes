@@ -1,0 +1,45 @@
+select
+  uv.user_id, 
+  v.name,
+  l.city,
+  uv.is_hidden,
+  note
+from venue v
+  left join location l on v.location_id = l.id
+  left join user_venue uv on v.id = uv.venue_id
+  left join note n on n.venue_id = v.id
+where 1=1
+  and v.id = 86
+;
+
+delete * from venue where id = 157;
+
+
+
+select
+  n.id note_id,
+  left(n.note, 20) note,
+  l.id location_id,
+  v.id note_id,
+  uv.user_id user_id,
+  uv.id uv_key,
+  uv.venue_id uvvenue_id
+from note n
+  left join venue v on v.id = n.venue_id
+  left join user_venue uv on v.id = uv.venue_id
+  left join location l on v.location_id = l.id
+where n.id = 319
+;
+
+
+user
+user_page
+
+page
+page_note
+
+user_venue
+venue
+venue_category
+
+location

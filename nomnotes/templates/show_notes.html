@@ -1,26 +1,82 @@
 <!--
 
+Next Up
+- moving source url params, etc from pages
+- category resolution
+- adding a location to a url
+- Matching location to page
+  korcula v korc(accent)ula
+  http://www.korculainfo.com/beaches/
+
+
+
 EXAMPLE PAGES
 https://foursquare.com/v/gelateria-santa-trinita/4bd30172a8b3a59341d4685f
 https://foursquare.com/v/la-prosciutteria/4ff9be87e4b054fbab829fde
 https://www.tripadvisor.com/Restaurant_Review-g187895-d7975400-Reviews-Panini_Toscani-Florence_Tuscany.html
 https://www.tripadvisor.com/Restaurant_Review-g187895-d6740021-Reviews-Sandwichic-Florence_Tuscany.html
+https://www.yelp.co.uk/biz/neighbor-bakehouse-san-francisco 
 http://www.yelp.com/biz/konnubio-firenze
+https://www.yelp.co.uk/biz/neighbor-bakehouse-san-francisco
 
 BUGS
+- Tripadvisor not working
+  https://www.tripadvisor.co.uk/ShowUserReviews-g295375-d2665194-r140930158-Sokolarski_Raptor_Centre-Sibenik_Sibenik_Knin_County_Dalmatia.html
 - apostrophy in the name and insert:
   https://foursquare.com/v/allantico-vinaio/4d1f5a3a16cfb60c38985061
+- No city, but has lat long:
+  https://foursquare.com/v/caffeteria-giro-espresso/4c91d8c61adc3704bc6d33d1
+- https://www.tripadvisor.com/Attraction_Review-g295374-d5449588-Reviews-Paseo_Maritimo-Zadar_Zadar_County_Dalmatia.html
+- https://foursquare.com/v/bilin-zal/4db041eb8154905aadaa2c04
+- https://www.yelp.com/biz/san-tung-san-francisco-2?q=dry%20fried
+- https://www.tripadvisor.com/Attraction_Review-g303808-d552473-Reviews-Hvar_Fortress-Hvar_Hvar_Island_Split_Dalmatia_County_Dalmatia.html
+- https://www.tripadvisor.com/Restaurant_Review-g2039690-d3447128-Reviews-Konoba_Belin-Zrnovo_Korcula_Town_Korcula_Island_Dubrovnik_Neretva_County_Dalmati.html
+  IF I remove konobo from the name match, would probably match more restaurants
+- https://www.tripadvisor.com/Attraction_Review-g295371-d1886448-Reviews-or10-Dubrovnik_Cable_Car-Dubrovnik_Dubrovnik_Neretva_County_Dalmatia.html/BackUrl#REVIEWS
+  not sending the notes for some reason...  
+
+Fuzzy Matches
+
+Pizzeria Tedeschi v Tedeschi
+https://foursquare.com/v/tedeschi/4c60537d54ac0f471748b521
+https://www.tripadvisor.com/Restaurant_Review-g303810-d4366730-Reviews-Pizzeria_Tedeschi-Korcula_Island_Dubrovnik_Neretva_County_Dalmatia.html
+
+Konoba Belin v Belin Zrnovo
+https://www.tripadvisor.com/Restaurant_Review-g2039690-d3447128-Reviews-Konoba_Belin-Zrnovo_Korcula_Town_Korcula_Island_Dubrovnik_Neretva_County_Dalmati.html
+https://foursquare.com/v/belin-zrnovo/501eb746e4b0597c4ae9bf19
+
+URLFy links:
+  http://stackoverflow.com/questions/203859/how-do-i-get-python-markdown-to-additionally-urlify-links-when-formatting-plai
+
+MAIN NAVIGATION
+- Places/Food/Pictures
+- General Notes
+
+
+elect name from venue where parent_category = 'unknown'
+
+update venue
+set parent_category = 'place'
+where parent_category is null 
+  and source = 'tripadvisor'source_url 
+
 
 FEATURES
-- Change markers based on category of item
-- Add / Delete / Edit Comments
+- UTF8
+- Fix more unknown categories
+- URL Saving
+- If saving fails, show in the plugin
+
+- Inject a download button to the right of a tripadvisor/foursquare icon
 - Allow end user to change order
 - Save Images    http://stackoverflow.com/questions/10423670/chrome-extension-that-copies-image-url-on-click
+- Search city, show all nearby lat long locations
+- Better centering of map
 
 - OnClick highlights a map item (and vice versa)  
-- Country Filtering
-- Implement Bootstrap on show_notes
-- Include Yelp.com
+- Improve location stuff
+- Change markers based on category of item
+- Certificate of excellence? ranking on TA?
 
 - Star a Location
   http://stackoverflow.com/questions/2730929/how-to-trigger-the-onclick-event-of-a-marker-on-a-google-maps-v3/2731781#2731781
@@ -51,7 +107,8 @@ Next Steps
 
 <html>
   <head>
-    <title>Nom Notes</title>
+    <meta charset="UTF-8">
+    <title>It Lyst</title>
     <meta name="viewport" content="initial-scale=1.0">
     <meta charset="utf-8">
     <meta id="hostname" data-name="{{session.hostname}}" >
@@ -62,78 +119,426 @@ Next Steps
 
     <script src="/static/js/jquery-2.2.4.min.js"></script>
     <script src="/static/js/bootstrap.min.js"></script>
+    <script src="/static/js/typeahead.bundle.js"></script>
+
     <!--<script src="/static/js/jquery-3.0.0.min.js"></script>-->
     <script>
-
       var map;
+      var markers = new Array();
+      var infowindow;
 
       // Clickable list http://marcgrabanski.com/jquery-google-maps-tutorial-basics/
-      function initialize() {
+      function initialize(markers) {
         map = new google.maps.Map(document.getElementById('map'), {});
-        var pageUrl =  window.location.href;
+        infowindow = new google.maps.InfoWindow();
 
         // Create a <script> tag and set the USGS URL as the source.
+
         var script = document.createElement('script');
         var hostname  = $('#hostname').data();
-        script.src = hostname.name + '/notes?format=js';
+        script.src = hostname.name + '/venues?format=js';
               
         document.getElementsByTagName('head')[0].appendChild(script);
-
       }
 
       // Loop through the results array and place a marker for each set of coordinates.
-
       window.gmapfeed = function(results) {
 
-        var infowindow = new google.maps.InfoWindow();
+          //var infowindow = new google.maps.InfoWindow();
+          var bounds = new google.maps.LatLngBounds();
 
-        for (var i = 0; i < results.markers.length; i++) {
-          var latLng = new google.maps.LatLng(results.markers[i].latitude,results.markers[i].longitude);
-          var marker = new google.maps.Marker({
-            position: latLng,
-            label: results.markers[i].name,
-            map: map
-          });
+          for (var i = 0; i < results.markers.length; i++) {
+            var latLng = new google.maps.LatLng(results.markers[i].latitude,results.markers[i].longitude);
+            var marker = new google.maps.Marker({
+              position: latLng,
+              label: results.markers[i].name,
+              map: map
+            });
+            markers[i] = marker;
 
-          // Show Title on Click
-          google.maps.event.addListener(marker, 'click', (function (marker, i) {
-            return function () {
-                var popUpData = "<b>" + results.markers[i].name + "</b><br>" 
-                + results.markers[i].rating + " " + results.markers[i].ratingOutOf + ", " + results.markers[i].reviews + " reviews<br>" 
-                + "<a target='_blank' href='http://www.google.com/maps/search/" + results.markers[i].name 
-                + "/@" + results.markers[i].page_latitude + "," + results.markers[i].page_longitude +"/14z'>view in gmaps</a>";
-                infowindow.setContent(popUpData);
-                infowindow.open(map, marker);
-                //var div = document.createElement("div");
-                //div.innerHTML = "LOADING 1234 LOADING 1234 LOADING 1234 LOADING 1234 ";
-                //document.body.appendChild(div);
-            }
-          })(marker, i));
+            bounds.extend(marker.position);
+
+            // Show Title on Click
+            google.maps.event.addListener(marker, 'click', (function (marker, i) {
+              return function () {
+                  var popUpData = "<b>" + marker.label + "</b><br>" 
+                  //+ results.markers[i].rating + " " + results.markers[i].ratingOutOf + ", " + results.markers[i].reviews + " reviews<br>" 
+                  //+ "<a target='_blank' href='http://www.google.com/maps/search/" + results.markers[i].name 
+                  //+ "/@" + results.markers[i].page_latitude + "," + results.markers[i].page_longitude +"/14z'>view in gmaps</a>";
+                  infowindow.setContent(popUpData);
+                  infowindow.open(map, marker);
+                  //var div = document.createElement("div");
+                  //div.innerHTML = "LOADING 1234 LOADING 1234 LOADING 1234 LOADING 1234 ";
+                  //document.body.appendChild(div);
+              }
+            })(marker, i));
 
         }
 
-        //Center Map on Collection of Locations
-        var bounds = new google.maps.LatLngBounds();
-        bounds.extend(marker.position);
-        map.fitBounds(bounds);
-        var listener = google.maps.event.addListener(map, "idle", function() { 
-          if (map.getZoom() > 16) map.setZoom(12); 
+        var listener = google.maps.event.addListener(map, 'idle', function() { 
+          if (map.getZoom() > 16) map.setZoom(11); 
           google.maps.event.removeListener(listener); 
         });
 
-      }
+        //Center Map on Collection of Locations
+       
+        map.fitBounds(bounds);
 
+
+      }
     </script>
 
 
+    <!-- Trigger Click on Google Maps -->
+    <script>
+      $(document).ready(function(){
+          $(".venue-click").click(function(){
+              i = $(this).data('nbr')
+              console.log(markers[i]);
+              google.maps.event.trigger(markers[i], 'click');
+          });
+      });
+    </script>
 
+
+    <!-- Enable the Showing/Hiding, Staring/Unstarring, Adding/Removing/Editing of Venues and their Notes -->
+    <script>
+
+      function addNoteToVenue(venue_id) {
+        var form = createAddNoteElement(venue_id);
+        $('#venue' + venue_id.toString()).append(form);
+
+        var new_note_input = document.getElementById ( 'newnoteforvenue' + venue_id.toString() );
+        console.log(new_note_input);
+        new_note_input.focus();
+        new_note_input.select();
+      }
+
+
+      function createAddNoteElement(venue_id) {
+
+        var e = document.createElement("li");
+        e.className = 'newnoteforvenueform';
+        e.id = 'newnoteforvenueform' + venue_id;
+        e.setAttribute('venue_id',venue_id);
+
+        var i = document.createElement("textarea");
+        i.className = 'newnotetext';
+        i.id = 'newnoteforvenue' + venue_id
+        i.setAttribute('onblur',"submitNote("+venue_id+")");
+
+        e.appendChild(i); 
+
+        return e;
+
+      }
+
+      // !!! Should switch to a listener rather than inline handler
+      function editNote(element) {
+
+        var venue_id = element.getAttribute('venue_id')
+        var note_id = element.getAttribute('note_id')
+        var note = element.innerText;
+        note = note.substring(0, note.length - 1);  //Current code includes 'x'--this strips it from the form. 
+
+        var i = document.createElement("textarea");
+        console.log("element id: " + element.id);
+
+        i.className = 'editnotetext';
+        i.id = 'editnoteforvenue' + venue_id;
+        i.setAttribute('note_id', note_id);
+        i.setAttribute('venue_id', venue_id);
+        i.setAttribute('onblur',"submitEditedNote("+venue_id+")");
+        i.value = note;
+        element.innerText = '';
+
+        element.appendChild(i);
+        i.focus();
+        //i.select();
+
+      }
+
+
+      /* !!! pass the element, not just the id
+         Submits a venue note that was added by the end user in the UI
+      */
+
+      function updatePageLocation(page_id) {
+
+        location_id  = $("#typeaheadcity").data("location_id")
+
+        if (typeof location_id !== 'undefined') {
+          url = '/updatepagelocation';
+
+          $.post(
+              url,
+              {page_id : page_id, 
+               location_id : location_id,
+              },
+              function(data, textStatus, jqXHR) {
+
+                window.location = "/";
+                //alert(data);
+                //completed_new_note = "<li>"+decodeURIComponent(data.note)+"<a class=deletesymbol href=/deletenote/id/"+data.note_id+"> x</a> </li>";
+                //var input = $('#newnoteforvenueform' + venue_id.toString()).replaceWith(completed_new_note);
+              });
+          } else {
+            document.getElementById ( 'aaa' + venue_id.toString() ).remove();
+          }
+
+
+      }
+
+      function submitNote(venue_id) {
+
+        note = $('#newnoteforvenue' + venue_id).val()
+
+        if (note.length > 0) {
+          url = '/addnote';
+          console.log("note: " + note);
+          console.log("venue_id: " + venue_id);
+
+          $.post(
+            url,
+            {venue_id : venue_id, 
+             note : encodeURIComponent(note),
+             action : 'new_venue_note_from_home'
+            },
+            function(data, textStatus, jqXHR) {
+              console.log(data);
+              completed_new_note = "<li>"+decodeURIComponent(data.note)+"<a class=deletesymbol href=/deletenote/id/"+data.note_id+"> x</a> </li>";
+              var input = $('#newnoteforvenueform' + venue_id.toString()).replaceWith(completed_new_note);
+            });
+        } else {
+          document.getElementById ( 'newnoteforvenueform' + venue_id.toString() ).remove();
+        }
+      }
+
+
+      function submitEditedNote(venue_id) {
+
+        edited_note = document.getElementById('editnoteforvenue'+venue_id.toString())
+        note_id  = edited_note.getAttribute('note_id')
+        note     = edited_note.value
+
+        //!!! Strip last two characters of string to remove the "x" out
+
+
+        //console.log ("submiteditednote" + note + " " + note_id.toString() + " " +venue_id.toString());
+
+        url = '/editnote';
+
+        $.post(
+          url,
+          {note_id : note_id,
+           venue_id : venue_id,
+           note : note
+           //note : encodeURIComponent(note)
+          },
+          function(data, textStatus, jqXHR) {
+            //console.log(data);
+
+            var element_id = "v" + data.venue_id + "_" + "n" + data.note_id
+
+            var edited_note = "<li id="+element_id+" venue_id="+data.venue_id+" note_id="+data.note_id+" class=venuenote>"+decodeURIComponent(data.note)+"<a class=deletesymbol href=/deletenote/id/"+data.note_id+"> x</a> </li>";
+
+
+            $('#' + element_id.toString()).replaceWith(edited_note);
+            //console.log( $('#editnoteforvenueform' + data.venue_id ));
+          });
+      }
+    </script>
+
+    <!-- Enable the Showing/Hiding, Staring/Unstarring, Adding/Removing/Editing of Pages and their Notes -->
+    <script>
+
+      function addPageNoteToPage(page_id) {
+        var form = createAddPageNoteElement(page_id);
+        $('#page' + page_id.toString()).append(form);
+
+        var new_page_note_input = document.getElementById ( 'newpagenoteforpage' + page_id.toString() );
+        console.log(new_page_note_input);
+        new_page_note_input.focus();
+        new_page_note_input.select();
+      }
+
+
+      function createAddPageNoteElement(page_id) {
+
+        var e = document.createElement("li");
+        e.className = 'newpagenoteforpageform';
+        e.id = 'newpagenoteforpageform' + page_id;
+        e.setAttribute('page_id',page_id);
+
+        var i = document.createElement("textarea");
+        i.className = 'newpagenotetext';
+        i.id = 'newpagenoteforpage' + page_id
+        i.setAttribute('onblur',"submitPageNote("+page_id+")");
+
+        e.appendChild(i); 
+
+        return e;
+
+      }
+
+      // !!! Should switch to a listener rather than inline handler
+      function editPageNote(element) {
+
+        var page_id = element.getAttribute('page_id')
+        var note_id = element.getAttribute('note_id')
+        var note = element.innerText;
+        note = note.substring(0, note.length - 1);  //Current code includes 'x'--this strips it from the form. 
+
+        var i = document.createElement("textarea");
+        console.log("element id: " + element.id);
+
+        i.className = 'editpagenotetext';
+        i.id = 'editpagenoteforpage' + page_id;
+        i.setAttribute('note_id', note_id);
+        i.setAttribute('page_id', page_id);
+        i.setAttribute('onblur',"submitEditedPageNote("+page_id+")");
+        i.value = note;
+        element.innerText = '';
+
+        element.appendChild(i);
+        i.focus();
+        //i.select();
+
+      }
+
+
+      /* !!! pass the element, not just the id
+         Submits a page note that was added by the end user in the UI
+      */
+      function submitPageNote(page_id) {
+        note = $( '#newpagenoteforpage'+page_id.toString() ).val();
+
+        if (note.length > 0) {
+          url = '/addnote';
+          console.log("note: " + note);
+          console.log("page_id: " + page_id);
+
+          $.post(
+            url,
+            {page_id : page_id, 
+             note : encodeURIComponent(note),
+             action : 'new_page_note_from_home'
+            },
+            function(data, textStatus, jqXHR) {
+              console.log(data);
+              completed_new_note = "<li>"+decodeURIComponent(data.note)+"<a class=deletesymbol href=/deletepagenote/id/"+data.note_id+"> x</a> </li>";
+              var input = $('#newpagenoteforpageform' + page_id.toString()).replaceWith(completed_new_note);
+            });
+        } else {
+          document.getElementById ( 'newpagenoteforpageform' + page_id.toString() ).remove();
+        }
+      }
+
+
+      function submitEditedPageNote(page_id) {
+
+        edited_note = document.getElementById('editpagenoteforpage'+page_id.toString())
+        note_id  = edited_note.getAttribute('note_id')
+        note     = edited_note.value
+
+        //console.log ("submiteditednote" + note + " " + note_id.toString() + " " +page_id.toString());
+        url = '/editpagenote';
+
+        $.post(
+          url,
+          {note_id : note_id,
+           page_id : page_id,
+           //note : encodeURIComponent(note)
+           note : note
+
+          },
+          function(data, textStatus, jqXHR) {
+            //console.log(data);
+
+            var element_id = "p" + data.page_id + "_" + "n" + data.note_id
+
+            var edited_note = "<li id="+element_id+" page_id="+data.page_id+" note_id="+data.note_id+" class=pagenote>"+decodeURIComponent(data.note)+"<a class=deletesymbol href=/deletepagenote/id/"+data.note_id+"> x</a> </li>";
+
+
+            $('#' + element_id.toString()).replaceWith(edited_note);
+            //console.log( $('#editnoteforpageform' + data.page_id ));
+          });
+      }
+    </script>
+
+    <!-- If user has editing priveleges, enable of clicks and keyboard entries for editing -->
+    {% if session.can_edit %}
+      <script>
+
+      // Catches all Clicks
+      $(document).click(function(event) {
+        var element = $(event.target);
+
+        //If user clicks on a venue note, enable end user to edit it
+        if (element[0].className == 'venuenote') {
+            editNote(element[0]);
+        }
+        if (element[0].className == 'pagenote') {
+            editPageNote(element[0]);
+        }
+
+      });
+
+      // Catches keyboard entries 
+      //  If keyboard = enter, then submit added note
+      //  Else If keyboard = escape, erase note and exit adding
+      $(document).keyup(function(e) {
+          //Return
+          if(e.keyCode == 13) {
+            $(".newnotetext").blur();
+            $(".editnotetext").blur();
+
+            $(".newpagenotetext").blur();
+            $(".editpagenotetext").blur();
+          }
+          //Escape
+          else if(e.keyCode == 27) {
+            $(".newnotetext").val('');
+            $(".newnotetext").blur();
+            $(".editnotetext").blur();
+
+            $(".newpagenotetext").val('');
+            $(".newpagenotetext").blur();
+            $(".editpagenotetext").blur();
+
+           // $(".newnotetext").blur();
+          }
+      });
+
+      /* !!! Should switch to a listener rather than inline handler
+         Triggered when user higlights an element  
+      */
+      function addBorder(element) {
+        element.style.backgroundColor = "#e2dede";
+      }
+      function removeBorder(element) {
+        element.style.backgroundColor = "";
+      }
+
+      </script>
+    {% endif %}
 
   </head>
+
 
   <!--  Header -->
   <div class="container-fluid" >
     <div id="header">
-      <p>Hello, <b>{{ user.username }}</b> [Share These Recommendations]</p>
+
+      {% if session.can_edit == 1 %}
+        Hello, <b>{{ user.username }}</b> 
+      {% else %}
+        <a href=/>Login</a> or <a href=/>Register</a>
+      {% endif %}
+      | <a href='{{ session.share_url }}'> Share these Noms</a>
+
+      <br>
+
     </div>
   </div>
 
@@ -144,107 +549,290 @@ Next Steps
     <div class="row">
 
       <!-- List of Content and Filters -->
-      <div class="col-lg-4">
+      <div class="col-lg-6">
+
 
         <!--Country, City, and Category Filters -->
-        <table>
+            <!--<td rowspan=6><img src=/static/img/nomnotes-logo.png width=80></td>-->
 
-          <!--
-          <tr>
-            <td>Country </td>
-            <td><p>
-
-              {% if current_country %}
-                <a href='/notes?city=reset'>[reset]</a> 
-              {% endif %}
-              {% for country in countries %}
-                [<a href='/notes?city={{ city.city }}'>
-                {% if current_city == city.city %}
-                  <b>{{ country.country }}</b>
-                {% else %}
-                  {{ country.country }}
+        <div id='filters'>
+          <table>
+            <tr>
+              <td>Country</td>
+              <td width=700>
+                {% for country in countries %}
+                  {% if session['country'] == country.country %}
+                    <b>{{ country.country }}</b>
+                  {% else %}
+                    <a href='/?country={{ country.country }}'>{{country.country}}</a>
+                  {% endif %}
+                {% endfor %}
+                {% if session['country'] %}
+                  <a href='/?country=reset'>[reset]</a> 
                 {% endif %}
-                </a>] 
-              {% endfor %}
-            </p></td>
-          </tr>        -->
-          <tr>
-            <td><p>City </p></td>
-            <td><p>
-              {% if current_city %}
-                <a href='/notes?city=reset'>[reset]</a> 
-              {% endif %}
-              {% for city in cities %}
-                {% if current_city == city.city %}
-                 [<a href='/notes?city={{ city.city }}'><b>{{ city.city }}</b></a>]
-                {% else %}
-                  [<a href='/notes?city={{ city.city }}'>{{city.city}}</a>]
+              </td>
+            </tr>
+            <tr>
+              <td>City</td>
+              <td>
+                {% for city in cities %}
+                  {% if session['city'] == city.city %}
+                   <b>{{ city.city }}</b>
+                  {% else %}
+                    <a href='/?city={{ city.city }}'>{{city.city}}</a>
+                  {% endif %}
+                {% endfor %}
+                {% if session['city'] %}
+                  <a href='/?city=reset'>[reset]</a> 
                 {% endif %}
-              {% endfor %}
-            </p></td>
-          </tr>
-          <tr>
-            <td><p>Category </p></td>
-            <td><p>
-            {% if current_parent_category %}
-              <a href='/notes?parent_category=reset'>[reset]</a> 
-            {% endif %}
-            {% for item in parent_categories %}
-              {% if (current_parent_category == item.parent_category) %}
-                [<a href='/notes?parent_category={{ item.parent_category }}'><b>{{ item.parent_category }}</b></a>]
-              {% else %}
-                [<a href='/notes?parent_category={{ item.parent_category }}'>{{ item.parent_category }}</a>]
-              {% endif %}
-              </a>
-            {% endfor %}
-            </p></td>
-          </tr>
+              </td>
+            </tr>
+            <tr>
+              <td>Filters</td>
+              <td>Zoom&nbsp;&nbsp;
+                {% for zoom_option in session.zoom_options %}
+                  {% if session['zoom'] == zoom_option %}
+                    <b>{{ zoom_option }}mi</b>
+                  {% else %}
+                    <a href=/?zoom={{ zoom_option }}>{{ zoom_option }}mi</a>
+                  {% endif %}
+                {% endfor %}
+                &nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;
+                Visibility&nbsp;&nbsp;
+                {% if session['is_hidden'] == 0 %}
+                   <a href='/?is_hidden=showhidden'>Show Hidden</a>
+                {% else %}
+                   <a href='/?is_hidden=hidehidden'>Hide Hidden</a>
+                {% endif %}
+                &nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;
+                Category&nbsp;&nbsp;
+                  {% for item in parent_categories %}
+                    {% if (session['parent_category']== item.parent_category) %}
+                      <b>{{ item.parent_category }}</b>
+                    {% else %}
+                      <a href='/?parent_category={{ item.parent_category }}'>{{ item.parent_category }}</a>
+                    {% endif %}
+                  {% endfor %}
+                  {% if session['parent_category'] %}
+                    <a href='/?parent_category=reset'>[reset]</a> 
+                  {% endif %}
 
-        </table>
+              </td>
+            </tr>
+          </table>
+      </div>
 
         <!-- List of Coffee Places -->
-        <h2>Nom Notes</h2>
+        <h2>Venue Lyst</h2>
 
-          <ul>
-          {% for datum in locations_json %}
-            <li>
-              <b>{{ datum.name }}</b>
-              {{ datum.rating }} 
-              {% if datum.source == 'tripadvisor' %}of 5.0{% elif datum.source == 'foursquare' %}of 10{% endif %}, 
-              {{ datum.reviews }} reviews
-              <!--[<a target='_blank' href='http://google.com/maps?q={{ datum.page_latitude }},{{ datum.page_longitude }}'>gmaps</a>]-->
-              <a target='_blank' href='{{ datum.page_url }}'>
-              {% if datum.source == 'tripadvisor' %}<img class=logos src=/static/img/tripadvisor-icon.png></a>
-              {% elif datum.source == 'foursquare' %}<img class=logos src=/static/img/foursquare-icon.png></a>
+          <ul class='venuelistsul'>
+          {% set venue_nbr = 0 %}
+          {% for datum in venues %}
+            {% if session.can_edit == 1 %}
+              {% if datum.is_starred == 1 %}
+                <li id='{{ datum.id }}' class=venueliststar><a class='venuelistanchor' href='/unstarvenue/id/{{ datum.id }}'></a>
+              {% else %}
+                <li id='{{ datum.id }}' class=venuelistunstar></a><a class='venuelistanchor' href='/starvenue/id/{{ datum.id }}'></a>
               {% endif %}
-              <a target='_blank' href='http://www.google.com/maps/search/{{ datum.name }}/@{{ datum.latitude }},{{ datum.longitude }}/14z'>
-              <img class=logos src=/static/img/gmaps-icon.png></a>
-              <a class=deletesymbol href='/deletelocation/id/{{ datum.id }}'>x</a>
+            {% else %}
+              {% if datum.is_starred == 1 %}
+                <li id='{{ datum.id }}' class=venueliststar><a class='venuelistanchor' href='#'></a>
+              {% else %}
+                <li id='{{ datum.id }}' class=venuelistunstar></a><a class='venuelistanchor' href='#'></a>
+              {% endif %}
+            {% endif %}
+            <input type='button' class='venue-click' data-nbr={{venue_nbr}} value='{{ datum.name }}'>
+            {% if datum.foursquare_rating %}
+              {{ datum.foursquare_rating }}, {{ datum.foursquare_reviews }} tips
+            {% elif datum.tripadvisor_rating %}
+              {{ (datum.tripadvisor_rating * 2) }}, {{ datum.tripadvisor_reviews }} tips
+            {% elif datum.yelp_rating %}
+              {{ datum.yelp_rating * 2 }}, {{ datum.yelp_reviews }} tips
+            {% endif %}
+              
+            {% if datum.foursquare_url %}
+              <a target='_blank' href='{{ datum.foursquare_url }}'><img class=logos src=/static/img/foursquare-icon.png></a>
+            {% endif %}
+            {% if datum.tripadvisor_url %}
+              <a target='_blank' href='{{ datum.tripadvisor_url }}'><img class=logos src=/static/img/tripadvisor-icon.png></a>
+            {% endif %}
+            {% if datum.yelp_url %}
+              <a target='_blank' href='{{ datum.yelp_url }}'><img class=logos src=/static/img/yelp-icon.png></a>
+            {% endif %}
+            <a target='_blank' href='http://google.com/maps?q={{ datum.latitude }},{{ datum.longitude }}'>
+              <img class=logos src=/static/img/gmaps-icon.png>
+            </a>
+            <a target='_blank' href='http://www.google.com/maps/search/{{ datum.name }}/@{{ datum.latitude }},{{ datum.longitude }}/14z'>
+              <img class=logos src=/static/img/gmaps-icon.png>
+            </a>
+            {% if session.can_edit %}
+              <a class=hidesymbol href='/hidevenue/id/{{ datum.id }}'><img class=logos src=/static/img/hide-icon.png></a>
+              <a class=deletesymbol href='/deletevenue/id/{{ datum.id }}'>x</a>
+              <button class=addsymbol onclick=addNoteToVenue({{ datum.id }})>+</a>
+            {% endif %}
+
             </li>
+            <ul id='venue{{ datum.id }}'>
             {% for note in datum.notes %}
-              <ul>
-                <li>
-                  {{ note | safe }}
-                  <a class=deletesymbol href='/deletenote/id/{{ note.id }}'>x</a>
+                <li id='v{{datum.id}}_n{{note.id}}' venue_id='{{ datum.id }}' note_id='{{ note.id }}' class='venuenote'  onmouseover="addBorder(this)" onmouseout="removeBorder(this)" >
+                  {{ note.note | safe }}
+                  {% if session.can_edit %}
+                    <a class=deletesymbol href='/deletenote/id/{{ note.id }}'>x</a>
+                  {% endif %}
                 </li>
-              </ul>
             {% endfor %}
+             </ul>
+            {% set venue_nbr = venue_nbr + 1 %}
           {% endfor %}
           </ul>
 
-        <!-- Saved URLs / Sites -->
-        <h2>Nom Sites</h2>
-          <ul>
-            {% for item in saved_urls %}
-            <li><a target='_blank' href={{ item.url }}>{{ item.title }}</a></li>
+        <!-- Pages -->
+        <!-- !!! Not sure hwo to see -->
+        {% if pages  %}
+          <h2>General Lysts</h2>
+        {% endif %}
+          <ul class='pagelistsul'>
+          {% set page_nbr = 0 %}
+          {% for datum in pages %}
+            {% if session.can_edit == 1 %}
+              {% if datum.is_starred == 1 %}
+                <li id='{{ datum.id }}' class=pageliststar><a class='pagelistanchor' href='/unstarpage/id/{{ datum.id }}'></a>
+              {% else %}
+                <li id='{{ datum.id }}' class=pagelistunstar></a><a class='pagelistanchor' href='/starpage/id/{{ datum.id }}'></a>
+              {% endif %}
             {% else %}
-            <li>No saved urls</li>
+              {% if datum.is_starred == 1 %}
+                <li id='{{ datum.id }}' class=pageliststar><a class='pagelistanchor' href='#'></a>
+              {% else %}
+                <li id='{{ datum.id }}' class=pagelistunstar></a><a class='pagelistanchor' href='#'></a>
+              {% endif %}
+            {% endif %}
+            <a type='button' class='page-click' data-nbr={{page_nbr}} href={{ datum.source_url }} target='_blank' >{{ datum.source_title }}</a>
+
+            {% if session.can_edit %}
+              <a class=hidesymbol href='/hidepage/id/{{ datum.id }}'><img class=logos src=/static/img/hide-icon.png></a>
+              <a class=deletesymbol href='/deletepage/id/{{ datum.id }}'>x</a>
+              <button class=addsymbol onclick=addPageNoteToPage({{ datum.id }})>+</a>
+            {% endif %}
+
+            </li>
+            <ul id='page{{ datum.id }}'>
+            {% for note in datum.notes %}
+                <li id='p{{datum.id}}_n{{note.id}}' page_id='{{ datum.id }}' note_id='{{ note.id }}' class='pagenote'  onmouseover="addBorder(this)" onmouseout="removeBorder(this)" >
+                  {{ note.note | safe }}
+                  {% if session.can_edit %}
+                    <a class=deletesymbol href='/deletepagenote/id/{{ note.id }}' >x</a>
+                  {% endif %}
+                </li>
             {% endfor %}
+             </ul>
+            {% set page_nbr = page_nbr + 1 %}
+          {% endfor %}
           </ul>
+
+        <!--  -->
+        {% if pages_no_loc  %}
+          <h2>General Lysts</h2>
+        {% endif %}
+        <h2>Lysts without Locations</h2>
+          <ul class='pagelistsul'>
+          {% set page_nbr = 0 %}
+          {% for datum in pages_no_loc %}
+            <div class=pagenoloclist>
+              {% if session.can_edit == 1 %}
+                {% if datum.is_starred == 1 %}
+                  <li id='{{ datum.id }}' class=pageliststar><a class='pagelistanchor' href='/unstarpage/id/{{ datum.id }}'></a>
+                {% else %}
+                  <li id='{{ datum.id }}' class=pagelistunstar></a><a class='pagelistanchor' href='/starpage/id/{{ datum.id }}'></a>
+                {% endif %}
+              {% else %}
+                {% if datum.is_starred == 1 %}
+                  <li id='{{ datum.id }}' class=pageliststar><a class='pagelistanchor' href='#'></a>
+                {% else %}
+                  <li id='{{ datum.id }}' class=pagelistunstar></a><a class='pagelistanchor' href='#'></a>
+                {% endif %}
+              {% endif %}
+             
+                <a type='button' class='page-click' data-nbr={{page_nbr}} href={{ datum.source_url }} target='_blank' >{{ datum.source_title }}</a>
+
+                {% if session.can_edit %}
+                  <a class=hidesymbol href='/hidepage/id/{{ datum.id }}'><img class=logos src=/static/img/hide-icon.png></a>
+                  <a class=deletesymbol href='/deletepage/id/{{ datum.id }}'>x</a>
+                  <button class=addsymbol onclick=addPageNoteToPage({{ datum.id }})>+</button>
+                {% endif %}
+            </div>
+            {% if session.can_edit %}
+              <div id="noloclystdiv{{ datum.id }}">                
+                <button id='addCity{{ datum.id }}' onclick=showCitySearchTypeahead({{ datum.id }})>Add City</button>
+              </div>
+            {% endif %}
+
+
+            {% set page_nbr = page_nbr + 1 %}
+        {% endfor %}
+        </ul>
+
+
+      <script>
+
+      function showCitySearchTypeahead(page_id) {
+
+        var i = document.createElement("input");
+        i.className = 'typeahead';
+        i.id = 'typeaheadcity'
+        i.setAttribute('type',"text");
+        i.setAttribute('placeholder',"Add a city to Page");
+
+        var b = document.createElement("button");
+        b.innerHTML = 'Update'
+        b.className = 'typeahead';
+        b.setAttribute('onclick',"updatePageLocation(" + page_id + ")");
+
+        $( '#noloclystdiv' + page_id ).append(i);
+        $( '#noloclystdiv' + page_id ).append(b);
+        $( "#addCity" + page_id ).remove();
+
+
+        //Initialize Typeahead
+        var cityAssigner = new Bloodhound({
+          datumTokenizer: Bloodhound.tokenizers.obj.whitespace('city'),
+          queryTokenizer: Bloodhound.tokenizers.whitespace,
+          prefetch: 'http://localhost:5000/cities',
+          remote: {
+            url: 'http://localhost:5000/cities?q=%QUERY',
+            wildcard: '%QUERY'
+          }
+        });
+        cityAssigner.initialize();
+
+        $('#typeaheadcity').typeahead({
+            //hint: true,
+            highlight: true,
+            minLength: 2
+         }, {
+            name: 'city-search',
+            displayKey: 'city',
+            source: cityAssigner.ttAdapter()
+         }).bind("typeahead:selected", function(obj, datum, name) {
+            $(this).data("location_id", datum.id);
+         });
+        };
+
+        //setTimeout("$('#typeaheadcity').focus();", 250)
+
+
+      </script>
+
+
+
+      
+
       </div>
 
             <!-- Google Map -->
-      <div class="col-lg-4">
+      <div class="col-lg-3">
+                    
+        <br><br><br><br><br><br>
         <div id='map'>
           <script async defer 
               src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDoemInMQhCNVqELI9R58ass8f7MnzvjPM&libraries=visualization&callback=initialize">
@@ -257,13 +845,30 @@ Next Steps
 
   </div>
 
-  <div id='footer'>
-    <p align=center>Nom Notes | Powered by <a target='_blank' href=http://foursquare.com><img class=logos src=/static/img/foursquare-icon.png></a> 
-       and <a target='_blank' href=http://tripadvisor.com><img class=logos src=/static/img/tripadvisor-icon.png></a></p>
+  <div id='footer'><br>
+    <p align=center>It Lyst | 
+       Powered by 
+       <a target='_blank' href=http://foursquare.com><img class=logos src=/static/img/foursquare-icon.png></a> and 
+       <a target='_blank' href=http://tripadvisor.com><img class=logos src=/static/img/tripadvisor-icon.png></a> and
+       <a target='_blank' href=http://yelp.com><img class=logos src=/static/img/yelp-icon.png></a>
+     </p>
   </div>
 
   </body>
 </html>
+
+<script>
+  // Function which enables an end user to add a city to an external url
+
+
+/*
+  $(document).on("click", "#someButton", function (e) {
+      e.preventDefault();
+      alert($("#typeaheadcity").data("location_id"));
+  });
+*/
+
+</script>
 
 
 

@@ -1,3 +1,12 @@
+#filters {
+	/* background-color: #ccd0e2; */
+}
+
+#header {
+	/*	float: right;*/
+	/*	width: 550; */
+}
+
 body  {
 	background: #eee; 
 }
@@ -5,7 +14,8 @@ body  {
 
 h2 { 
 	font-family: sans-serif; 
-	font-size: 1.2em;
+	font-size: 1.1em;
+
 }
 
 ul, li, p, table, td { 
@@ -15,8 +25,20 @@ ul, li, p, table, td {
 
 td { 
     padding: 1px;
+    padding-bottom: 2px;
 }
 
+tr {
+  padding-bottom: 2px;
+}
+
+#remote {
+	vertical-align: bottom;
+}
+
+.typeahead {
+	vertical-align: top;
+}
 
 
 
@@ -29,11 +51,11 @@ h2              { font-size: 1.2em; }
 
 li      		{ font-size: 1.0em; serif; }
 td      		{ font-size: 0.8em; serif; }
-*/
 
-ul {
+de {}
   padding-left:20px;
 }
+*/
 
 
 h2 + ul {
@@ -47,10 +69,8 @@ h2 + ul {
 }
 
 
-#header {
-/*	float: right;*/
-/*	width: 550; */
-}
+
+
 
 
 
@@ -61,17 +81,68 @@ h2 + ul {
 }
 */
 
+
+button:focus {}
+
 #map {
 	width: 100%;
 	height: 500;
 }
 
+.newnotetext, .newpagenotetext {
+	width: 500px; 
+	height: 150px	;
+}
+
+.editnotetext, .editpagenotetext {
+	width:  500px;
+    height: 150px;
+}
 
 .logos {
 	width: 16px;
 	height: 16px;
 }
 
+.venue-click, .page-click {
+	font-weight: bold;
+	border: none;
+	background-color: Transparent;
+	padding: 2px 2px;
+	outline:0;
+}
+
+.venuelistsul, .pagelistsul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.venuelistsul, .venueliststar, .venuelistunstar, .pagelistsul, .pageliststar, .pagelistunstar {
+  margin: 0px 0 0px 0; 
+  padding: 0;
+  background-repeat: no-repeat;
+  background-position: 0 30%;
+}
+
+.venuelistsul, .venuelistanchor, .pagelistsul, .pagelistanchor {
+  padding-left: 20px; /* width of icon + whitespace */
+}
+
+.venuelistunstar, .pagelistunstar {
+	background-image: url('/static/img/star-unchecked.png');
+}
+
+.venueliststar, .pageliststar {
+	background-image: url('/static/img/star-checked.png');
+}
+
+.deletesymbol, .addsymbol {
+	font-weight: bold;
+	border: none;
+	background-color: Transparent;
+	padding: 4px 4px;
+}
 
 a:link    { color: #5f3cee; }       /* unvisited link */
 a:visited { color: #5f3cee;}    /* visited link */

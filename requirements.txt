@@ -1,4 +1,6 @@
 bcrypt
+fuzzywuzzy
+python-Levenshtein
 flask
 flask-RESTful
 flask-sqlalchemy
