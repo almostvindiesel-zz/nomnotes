@@ -666,16 +666,16 @@ def drop_tables():
     db.session.execute("drop table if exists venue")
     db.session.execute("drop table if exists user_venue")
 
-    db.session.execute("drop table if exists location")
-
     db.session.execute("drop table if exists page_note")
     db.session.execute("drop table if exists user_page")
     db.session.execute("drop table if exists page")
+    
+    db.session.execute("drop table if exists location")
 
     db.session.commit()
 
     #create_database()    
-    return "created"
+    return "dropped tables"
 
 
 @app.route('/truncatetables')
