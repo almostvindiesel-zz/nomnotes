@@ -635,15 +635,18 @@ def show_admin_pages():
      return render_template('show_admin.html')
 
 
-@app.route('/createdb')
+@app.route('/createtables')
 #!!! @login_required 
-def create_database(): 
-    #Location.__table__.create(db.session.bind, checkfirst=True)
-    #Venue.__table__.create(db.session.bind, checkfirst=True)
-    #VenueCategory.__table__.create(db.session.bind, checkfirst=True)
-    #Note.__table__.create(db.session.bind, checkfirst=True)
+def create_tables(): 
+
     #User.__table__.create(db.session.bind, checkfirst=True)
-    #UserVenue.__table__.create(db.session.bind, checkfirst=True)
+
+    Location.__table__.create(db.session.bind, checkfirst=True)
+
+    Venue.__table__.create(db.session.bind, checkfirst=True)
+    VenueCategory.__table__.create(db.session.bind, checkfirst=True)
+    Note.__table__.create(db.session.bind, checkfirst=True)
+    UserVenue.__table__.create(db.session.bind, checkfirst=True)
 
     Page.__table__.create(db.session.bind, checkfirst=True)
     PageNote.__table__.create(db.session.bind, checkfirst=True)
@@ -653,29 +656,43 @@ def create_database():
     return "created tables"
 
 
-@app.route('/dropandcreatedb')
+@app.route('/droptables')
 #!!! @login_required 
-def drop_and_createdb(): 
+def drop_tables(): 
     #db.session.execute("drop table if exists user")
+
     db.session.execute("drop table if exists note")
     db.session.execute("drop table if exists venue_category")
     db.session.execute("drop table if exists venue")
     db.session.execute("drop table if exists user_venue")
+
     db.session.execute("drop table if exists location")
 
-    create_database()    
-    return "drop and created all dbs"
+    db.session.execute("drop table if exists page_note")
+    db.session.execute("drop table if exists user_page")
+    db.session.execute("drop table if exists page")
+
+    db.session.commit()
+
+    #create_database()    
+    return "created"
 
 
-@app.route('/truncatedb')
+@app.route('/truncatetables')
 #!!! @login_required 
-def truncate_note_database(): 
+def truncate_tables(): 
     #db.session.execute("delete from user where id >= 1")
     db.session.execute("delete from note where id >= 1")
     db.session.execute("delete from venue_category where id >= 1")
     db.session.execute("delete from venue where id >= 1")
-    db.session.execute("delete from location where id >= 1")
     db.session.execute("delete from user_venue where user_id >= 1 or location_id >= 1")
+
+    db.session.execute("delete from location where id >= 1")
+
+    db.session.execute("delete from page_note where id >= 1")
+    db.session.execute("delete from user_page where id >= 1")
+    db.session.execute("delete from page where id >= 1")
+
     db.session.commit()
 
     return "truncated dbs"
