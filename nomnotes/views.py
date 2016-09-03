@@ -639,15 +639,16 @@ def show_admin_pages():
 #!!! @login_required 
 def create_tables(): 
 
-    #User.__table__.create(db.session.bind, checkfirst=True)
+    User.__table__.create(db.session.bind, checkfirst=True)
 
     Location.__table__.create(db.session.bind, checkfirst=True)
 
     Venue.__table__.create(db.session.bind, checkfirst=True)
     VenueCategory.__table__.create(db.session.bind, checkfirst=True)
-    Note.__table__.create(db.session.bind, checkfirst=True)
     UserVenue.__table__.create(db.session.bind, checkfirst=True)
 
+    Note.__table__.create(db.session.bind, checkfirst=True)
+    
     Page.__table__.create(db.session.bind, checkfirst=True)
     PageNote.__table__.create(db.session.bind, checkfirst=True)
     UserPage.__table__.create(db.session.bind, checkfirst=True)
@@ -659,18 +660,18 @@ def create_tables():
 @app.route('/droptables')
 #!!! @login_required 
 def drop_tables(): 
-    #db.session.execute("drop table if exists user")
 
-    db.session.execute("drop table if exists note")
-    db.session.execute("drop table if exists venue_category")
-    db.session.execute("drop table if exists venue")
-    db.session.execute("drop table if exists user_venue")
+    Note.__table__.drop(db.session.bind, checkfirst=True)
+    VenueCategory.__table__.drop(db.session.bind, checkfirst=True)
+    UserVenue.__table__.drop(db.session.bind, checkfirst=True)
+    Venue.__table__.drop(db.session.bind, checkfirst=True)
 
-    db.session.execute("drop table if exists page_note")
-    db.session.execute("drop table if exists user_page")
-    db.session.execute("drop table if exists page")
-    
-    db.session.execute("drop table if exists location")
+    PageNote.__table__.drop(db.session.bind, checkfirst=True)
+    UserPage.__table__.drop(db.session.bind, checkfirst=True)
+    Page.__table__.drop(db.session.bind, checkfirst=True)
+
+    Location.__table__.drop(db.session.bind, checkfirst=True)
+    User.__table__.drop(db.session.bind, checkfirst=True)
 
     db.session.commit()
 
@@ -785,8 +786,11 @@ def get_pages_with_notes():
                 POW(69.1 * (latitude - %s), 2) + \
                 POW(69.1 * (%s - longitude) * COS(latitude / 57.3), 2)) AS distance \
                 FROM location \
-                HAVING distance < %s" \
-                % (latitude_start, longitude_start, session['zoom'])
+                GROUP BY id \
+                HAVING SQRT( \
+                POW(69.1 * (latitude - %s), 2) + \
+                POW(69.1 * (%s - longitude) * COS(latitude / 57.3), 2)) < %s" \
+                % (latitude_start, longitude_start, latitude_start, longitude_start, session['zoom'])
 
         locations = db.session.execute(sql)
         locationIDs = []
@@ -853,8 +857,11 @@ def get_venues_with_notes():
                 POW(69.1 * (latitude - %s), 2) + \
                 POW(69.1 * (%s - longitude) * COS(latitude / 57.3), 2)) AS distance \
                 FROM location \
-                HAVING distance < %s" \
-                % (latitude_start, longitude_start, session['zoom'])
+                GROUP BY id \
+                HAVING SQRT( \
+                POW(69.1 * (latitude - %s), 2) + \
+                POW(69.1 * (%s - longitude) * COS(latitude / 57.3), 2)) < %s" \
+                % (latitude_start, longitude_start, latitude_start, longitude_start, session['zoom'])
 
         locations = db.session.execute(sql)
         locationIDs = []
@@ -1072,7 +1079,12 @@ def initialize_session_vars():
         session['can_edit'] = 0
         if 'username' in session:
             u = User.query.filter_by(username = session['username']).first()
-            session['page_user_id'] = u.id
+
+            if u.id:
+                session['page_user_id'] = u.id
+            else:
+                #!!! Future iteration: redirect to localhost
+                session['page_user_id'] = 'almostvindiesel'
 
 
 

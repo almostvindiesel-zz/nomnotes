@@ -167,6 +167,7 @@ Next Steps
                   //+ "/@" + results.markers[i].page_latitude + "," + results.markers[i].page_longitude +"/14z'>view in gmaps</a>";
                   infowindow.setContent(popUpData);
                   infowindow.open(map, marker);
+
                   //var div = document.createElement("div");
                   //div.innerHTML = "LOADING 1234 LOADING 1234 LOADING 1234 LOADING 1234 ";
                   //document.body.appendChild(div);
@@ -629,13 +630,13 @@ Next Steps
           {% set venue_nbr = 0 %}
           {% for datum in venues %}
             {% if session.can_edit == 1 %}
-              {% if datum.is_starred == 1 %}
+              {% if datum.is_starred == True %}
                 <li id='{{ datum.id }}' class=venueliststar><a class='venuelistanchor' href='/unstarvenue/id/{{ datum.id }}'></a>
               {% else %}
-                <li id='{{ datum.id }}' class=venuelistunstar></a><a class='venuelistanchor' href='/starvenue/id/{{ datum.id }}'></a>
+                <li id='{{ datum.id }}' class=venuelistunstar></a><a class='venuelistanchor' href='/starvenue/id/{{ datum.id }}'></a>  
               {% endif %}
             {% else %}
-              {% if datum.is_starred == 1 %}
+              {% if datum.is_starred == True %}
                 <li id='{{ datum.id }}' class=venueliststar><a class='venuelistanchor' href='#'></a>
               {% else %}
                 <li id='{{ datum.id }}' class=venuelistunstar></a><a class='venuelistanchor' href='#'></a>

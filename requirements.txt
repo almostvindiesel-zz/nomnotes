@@ -13,3 +13,5 @@ requests
 mysql
 mysql-python
 mysql-connector-python
+pandas
+mysql-connector-python-rf

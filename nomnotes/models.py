@@ -230,7 +230,6 @@ class User(db.Model, UserMixin):
     last_name = db.Column(db.String(100), nullable=False, server_default='')
     __table_args__ = {'mysql_charset': 'utf8'}
 
-#unique the note and page_url   
 
 
 class UserPage(db.Model):
