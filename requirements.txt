@@ -6,6 +6,7 @@ flask-RESTful
 flask-sqlalchemy
 flask-user
 flask-mail
+gunicorn
 
 psycopg2==2.6.1
 Flask-Migrate==1.8.0
