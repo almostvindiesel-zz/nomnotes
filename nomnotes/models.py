@@ -10,8 +10,8 @@ from sqlalchemy import UniqueConstraint, distinct, func
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import relationship
 
-from flaskext.mysql import MySQL
-import MySQLdb
+#from flaskext.mysql import MySQL
+#import MySQLdb
 
 if(os.environ["NOMNOMTES_ENVIRONMENT"] == 'local'):
     from nomnotes import app

@@ -6,12 +6,14 @@ flask-RESTful
 flask-sqlalchemy
 flask-user
 flask-mail
-flask-MySQL
+
 psycopg2==2.6.1
 Flask-Migrate==1.8.0
 requests
-mysql
-mysql-python
-mysql-connector-python
 pandas
-mysql-connector-python-rf
+
+# flask-MySQL
+# mysql
+# mysql-python
+# mysql-connector-python-rf
+# mysql-connector-python 			rejected by heroku, not sure if required when i have mysql installed
