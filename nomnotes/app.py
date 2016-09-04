@@ -1,11 +1,11 @@
 #from nomnotes import app
 
-#from flask import Flask
-#app = Flask(__name__)
 
 #import os
 
+print "Loading app.py..."
 
+import nomnotes.views
 
 
 """

@@ -15,6 +15,9 @@ from sqlalchemy.orm import relationship
 
 #print "os environment: ", os.environ["NOMNOMTES_ENVIRONMENT"]
 
+print "Loading models.py..."
+
+
 if(os.environ["NOMNOMTES_ENVIRONMENT"] == 'local'):
     from nomnotes import app
 elif(os.environ["NOMNOMTES_ENVIRONMENT"] == 'pythonanywhere'):
