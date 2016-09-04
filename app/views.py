@@ -1,5 +1,10 @@
+print "Loading views.py ..."
+
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+
+from app import app
+
 
 import warnings
 from flask.exthook import ExtDeprecationWarning
@@ -23,14 +28,17 @@ from flask import Flask, request, session, g, redirect, url_for, abort, render_t
 #from flaskext.mysql import MySQL
 #import MySQLdb
 
+
+"""
 if(os.environ["NOMNOMTES_ENVIRONMENT"] == 'local'):
-    from nomnotes import app
+    from app import app
 elif(os.environ["NOMNOMTES_ENVIRONMENT"] == 'pythonanywhere'):
     from app import app
 elif(os.environ["NOMNOMTES_ENVIRONMENT"] == 'heroku'):
     from app import app
+"""
 
-print "Loading views.py..."
+
 
 
 from models import db, User, Note, Venue, Location, VenueCategory, FoursquareVenue, FoursquareVenues, UserVenue, UserPage, Page, PageNote

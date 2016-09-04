@@ -1,1 +1,1 @@
-web: gunicorn nomnotes.app:app
+web: gunicorn app:app

@@ -1,3 +1,4 @@
+from app import app
 import os
 import sqlite3
 import requests
@@ -17,13 +18,14 @@ from sqlalchemy.orm import relationship
 
 print "Loading models.py..."
 
-
+"""
 if(os.environ["NOMNOMTES_ENVIRONMENT"] == 'local'):
     from nomnotes import app
 elif(os.environ["NOMNOMTES_ENVIRONMENT"] == 'pythonanywhere'):
     from app import app
 elif(os.environ["NOMNOMTES_ENVIRONMENT"] == 'heroku'):
     from app import app
+"""
 
 db = SQLAlchemy(app)
 
