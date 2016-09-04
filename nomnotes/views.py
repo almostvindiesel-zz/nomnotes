@@ -27,6 +27,16 @@ if(os.environ["NOMNOMTES_ENVIRONMENT"] == 'local'):
     from nomnotes import app
 elif(os.environ["NOMNOMTES_ENVIRONMENT"] == 'pythonanywhere'):
     from app import app
+elif(os.environ["NOMNOMTES_ENVIRONMENT"] == 'heroku'):
+    from app import app
+    # ------------------------------------------------------------------------------------------ Configuration 
+    print "-" * 50
+    print "set os.environ from Heroku to app.config vars:"
+    for key, value in os.environ.iteritems() :
+        app.config[key] = value
+        print key, value
+    print "-" * 50
+
 
 from models import db, User, Note, Venue, Location, VenueCategory, FoursquareVenue, FoursquareVenues, UserVenue, UserPage, Page, PageNote
 

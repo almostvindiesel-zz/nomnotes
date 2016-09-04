@@ -13,11 +13,14 @@ from sqlalchemy.orm import relationship
 #from flaskext.mysql import MySQL
 #import MySQLdb
 
+#print "os environment: ", os.environ["NOMNOMTES_ENVIRONMENT"]
+
 if(os.environ["NOMNOMTES_ENVIRONMENT"] == 'local'):
     from nomnotes import app
 elif(os.environ["NOMNOMTES_ENVIRONMENT"] == 'pythonanywhere'):
     from app import app
-
+elif(os.environ["NOMNOMTES_ENVIRONMENT"] == 'heroku'):
+    from app import app
 
 db = SQLAlchemy(app)
 
