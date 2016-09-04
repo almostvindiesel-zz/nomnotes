@@ -10,7 +10,7 @@ app/models_LOCAL_26281.py
 app/models_REMOTE_26281.py
 app/queries/schema.sql
 app/settings.cfg
-app/static/img/app-logo.xcf
+app/static/img/nomnotes-logo.xcf
 app/views.py--
 app/views.pyc
 venv/

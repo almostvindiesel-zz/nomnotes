@@ -1,11 +1,9 @@
-print "Loading views.py ..."
-
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+print "Loading views.py ..."
+
 from app import app
-
-
 import warnings
 from flask.exthook import ExtDeprecationWarning
 warnings.simplefilter('ignore', ExtDeprecationWarning)
