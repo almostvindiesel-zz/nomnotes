@@ -43,7 +43,7 @@ from models import db, User, Note, Venue, Location, VenueCategory, FoursquareVen
 
 db_adapter = SQLAlchemyAdapter(db, User)        # Register the User model
 user_manager = UserManager(db_adapter, app)     # Initialize Flask-User
-mail = Mail(app)  
+#mail = Mail(app)  
 
 # ----------------------------------------------------------------------------
 # Page Note
