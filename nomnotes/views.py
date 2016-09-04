@@ -634,7 +634,7 @@ def show_venues(id):
 # Admin and Database 
 
 
-@app.route('/nnadmin', methods=['GET'])
+@app.route('/admin', methods=['GET'])
 #!!! @login_required 
 def show_admin_pages():
      return render_template('show_admin.html')

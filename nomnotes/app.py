@@ -5,7 +5,6 @@
 
 print "Loading app.py..."
 
-import nomnotes.views
 
 
 """
