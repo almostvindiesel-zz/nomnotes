@@ -1,10 +1,27 @@
-import os
-os.environ['NOMNOMTES_ENVIRONMENT'] = 'heroku'
+from nomnotes import app
+
+#from flask import Flask
+#app = Flask(__name__)
+
+#import os
+
+
+"""
+
+
+from nomnotes import app
 
 
 from flask import Flask
 app = Flask(__name__)
 
-from app import app
-import views
+from nomnotes import views
+"""
 
+
+
+"""
+from app import app
+from nomnotes import nomnotes
+import views
+"""

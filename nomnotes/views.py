@@ -20,8 +20,8 @@ from flask_mail import Mail
 from sqlalchemy import UniqueConstraint, distinct, func
 from sqlalchemy.exc import IntegrityError
 from flask import Flask, request, session, g, redirect, url_for, abort, render_template, render_template_string, flash, jsonify, make_response
-from flaskext.mysql import MySQL
-import MySQLdb
+#from flaskext.mysql import MySQL
+#import MySQLdb
 
 if(os.environ["NOMNOMTES_ENVIRONMENT"] == 'local'):
     from nomnotes import app
