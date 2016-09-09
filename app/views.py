@@ -14,6 +14,7 @@ import random
 import requests
 import requests.packages.urllib3
 import re
+import urllib
 from fuzzywuzzy import fuzz
 from datetime import datetime
 from json import dumps
@@ -22,6 +23,7 @@ from flask_mail import Mail
 #from contextlib import closing #from werkzeug.utils import secure_filename #requests.packages.urllib3.disable_warnings()
 from sqlalchemy import UniqueConstraint, distinct, func
 from sqlalchemy.exc import IntegrityError
+from sqlalchemy.sql import text
 from flask import Flask, request, session, g, redirect, url_for, abort, render_template, render_template_string, flash, jsonify, make_response
 #from flaskext.mysql import MySQL
 #import MySQLdb
@@ -39,7 +41,7 @@ elif(os.environ["NOMNOMTES_ENVIRONMENT"] == 'heroku'):
 
 
 
-from models import db, User, Note, Venue, Location, VenueCategory, FoursquareVenue, FoursquareVenues, UserVenue, UserPage, Page, PageNote
+from models import db, User, Note, Venue, Location, VenueCategory, FoursquareVenue, FoursquareVenues, UserVenue, UserPage, Page, PageNote, UserImage
 
 db_adapter = SQLAlchemyAdapter(db, User)        # Register the User model
 user_manager = UserManager(db_adapter, app)     # Initialize Flask-User
@@ -51,7 +53,7 @@ user_manager = UserManager(db_adapter, app)     # Initialize Flask-User
 @app.route('/deletepagenote/id/<int:id>', methods=['GET'])
 @login_required 
 def delete_page_note(id):
-    sql = 'delete from page_note where id = "%s"' % (id)
+    sql = 'delete from page_note where id = %s' % (id)
     db.session.execute(sql)
     db.session.commit()
 
@@ -66,13 +68,19 @@ def edit_page_note():
         note = request.form.get('note')
         note_id = request.form.get('note_id')
         page_id = request.form.get('page_id')
-        print note
+        #print note
 
-    sql = 'update page_note set note = "%s" where id = "%s"' % (note, note_id)
-    db.session.execute(sql)
-    db.session.commit()
+        sql = text('update page_note set note = :note where id = :note_id')
+        sql = sql.bindparams(note=note, note_id=note_id)
+        db.session.execute(sql)
+        db.session.commit()
 
-    return jsonify(note_id = note_id, page_id = page_id, note = note)
+        return jsonify(note_id = note_id, page_id = page_id, note = note)
+    else:
+        return jsonify(note_id = '', page_id = '', note = '')
+
+
+
 
 
 #This function is used to update a location on a page note 
@@ -98,10 +106,27 @@ def update_page_location():
     new_location.insert()
 
     #Associate the new location with the page_note
-    sql = 'update page set location_id = %s where id = "%s"' % (new_location.id, page_id)
+    sql = 'update page set location_id = %s where id = %s' % (new_location.id, page_id)
+
+
+
+
     db.session.execute(sql)
     db.session.commit()
 
+    return redirect(url_for('show_notes', username=session['username']))
+
+# ----------------------------------------------------------------------------
+# Image
+
+@app.route('/deleteimage/id/<int:id>', methods=['GET'])
+@login_required 
+def delete_image(id):
+    sql = 'delete from user_image where id = %s' % (id)
+    db.session.execute(sql)
+    db.session.commit()
+
+    initialize_session_vars()
     return redirect(url_for('show_notes', username=session['username']))
 
 # ----------------------------------------------------------------------------
@@ -110,7 +135,7 @@ def update_page_location():
 @app.route('/deletenote/id/<int:id>', methods=['GET'])
 @login_required 
 def delete_note(id):
-    sql = 'delete from note where id = "%s"' % (id)
+    sql = 'delete from note where id = %s' % (id)
     db.session.execute(sql)
     db.session.commit()
 
@@ -121,22 +146,25 @@ def delete_note(id):
 @login_required 
 def edit_note():
     if request.method == 'POST':
-        note = urllib.unquote(request.form.get('note'))
-        note = note
+        note = request.form.get('note')
         note_id = request.form.get('note_id')
         venue_id = request.form.get('venue_id')
 
-    sql = 'update note set note = "%s" where id = "%s"' % (note, note_id)
-    db.session.execute(sql)
-    db.session.commit()
+        sql = text('update note set note = :note where id = :note_id')
+        sql = sql.bindparams(note=note, note_id=note_id)
+        db.session.execute(sql)
+        db.session.commit()
 
-    return jsonify(note_id = note_id, venue_id = venue_id, note = note)
+        return jsonify(note_id = note_id, venue_id = venue_id, note = note)
+    else:
+        return jsonify(note_id = '', venue_id = '', note = '')
+
+
 
 
 @app.route('/addnote', methods=['POST', 'GET'])
+@login_required 
 def add_note():
-
-    print '-' * 80
 
     """ 
     When an end user highlights a selection and saves to Nom Notes when not on a review page from tripadvisor, foursquare, or yelp,
@@ -146,9 +174,10 @@ def add_note():
     - page      (if the page has not been saved before by any user)
     - location  (if the page has not been saved before by any user, we'll try to find the city or country that the page refers to)
     """
+    print '-' * 80
+    action = request.form.get('action')
 
-
-    if request.method == 'POST' and request.form.get('action')   == 'new_page_note_from_home':
+    if request.method == 'POST' and action == 'new_page_note_from_home':
 
         pn = PageNote(
             urllib.unquote(request.form.get('note', None)), 
@@ -161,7 +190,7 @@ def add_note():
         return jsonify(note_id = pn.id, page_id = pn.page_id, note = pn.note)
 
 
-    elif request.method == 'POST' and request.form.get('action')   == 'new_venue_note_from_home':
+    elif request.method == 'POST' and action == 'new_venue_note_from_home':
 
         n = Note(
             session['user_id'], 
@@ -175,7 +204,7 @@ def add_note():
         return jsonify(note_id = n.id, venue_id = n.venue_id, note = n.note)
 
 
-    elif request.method == 'POST' and request.form.get('action') == 'new_venue_note_from_venue':
+    elif request.method == 'POST' and action == 'new_venue_note_from_venue':
 
         # Parameters from post request
         # ---------------------------------------------------------
@@ -201,10 +230,21 @@ def add_note():
             request.form.get('longitude', None)
         )
 
-        n = Note(user_id, 
-            request.form.get('note', None), 
-            source_url
-        )
+        n = None
+        ui = None
+        if request.form.get('image_url'):
+            ui = UserImage(
+                request.form.get('image_url'),
+                session['user_id']
+            )
+            print "--- Initialized user image object with url: ", ui.image_url
+        elif request.form.get('note'):
+            n = Note(
+                user_id, 
+                request.form.get('note', ''), 
+                source_url
+            )
+            print "--- Initialized note object with note: ", n.note
 
         categoriesStr = request.form['categories']
         categories = categoriesStr.split(",")
@@ -291,6 +331,7 @@ def add_note():
             print "--- Source is not yelp, tripadvisor, of foursquare... "
             #Next sources to add: Google Maps and Facebook
 
+
         #Call the Google API to derive consistent city | state | country from lat long for all sources
         l.set_city_state_country_with_lat_lng_from_google_location_api()
 
@@ -305,14 +346,31 @@ def add_note():
         searched_venue_in_db = Venue.get(name=v.name, foursquare_id=v.foursquare_id, tripadvisor_id=v.tripadvisor_id, yelp_id=v.yelp_id)
         if searched_venue_in_db:
             #Insert User Venue Map
+            #Does a mapping already existing between existing venue and user? If not, insert it
             uv = UserVenue(user_id, searched_venue_in_db.id)
-            uv.insert()
+            uv.find()
+            if not uv.id:
+                uv.insert()
 
-            #Insert Note
-            n.venue_id = searched_venue_in_db.id
-            n.insert()
+            #Insert Note or Image:
+            if n:
+                print "--- Checking to see if identical page note exists in database. If not, insert it"
+                n.venue_id = uv.venue_id
+                n.find()
+                if not n.id:
+                    n.insert()
+                response = jsonify(note_id = n.id, venue_id = uv.venue_id, note = n.note, msg = "Inserted note: %s" % n.note )
 
-            return "Added to Nom Notes: " + n.note
+            elif ui:
+                print "--- Checking to see if user image exists. If not, insert it"
+                ui.venue_id = uv.venue_id
+                ui.find()
+                if not ui.id:
+                    ui.insert()
+                response = jsonify(user_image_id = ui.id, venue_id = uv.venue_id, image_url = ui.image_url, msg = "Inserted image: %s" % ui.image_url )
+            else:
+                response = jsonify(venue_id = uv.venue_id, msg = "...")
+            return response
 
         # If no venue exists, add the location, then venue, then venue categories, then note
         else:
@@ -332,23 +390,46 @@ def add_note():
                 vc = VenueCategory(v.id, category)
                 vc.insert
 
-            #Insert note
-            n.venue_id = v.id
-            n.insert()
+            #Insert Note or Image:
+            #!!! Identical to above...
+            if n:
+                print "--- Checking to see if identical page note exists in database. If not, insert it"
+                n.venue_id = uv.venue_id
+                n.find()
+                if not n.id:
+                    n.insert()
+                response = jsonify(note_id = n.id, venue_id = uv.venue_id, note = n.note, msg = "Inserted note: %s" % n.note )
 
-            return "Added to Nom Notes: " + n.note        
+            elif ui:
+                print "--- Checking to see if user image exists. If not, insert it"
+                ui.venue_id = uv.venue_id
+                ui.find()
+                if not ui.id:
+                    ui.insert()
+                response = jsonify(user_image_id = ui.id, venue_id = uv.venue_id, image_url = ui.image_url, msg = "Inserted image: %s" % ui.image_url )
+            else:
+                response = jsonify(venue_id = uv.venue_id, msg = "...")
+            return response
 
 
-    elif request.method == 'POST' and request.form.get('action') == 'new_page_note_from_other_page':
+    elif request.method == 'POST' and (action == 'new_page_note_from_other_page'):
 
         print "--- Processing parameters from the addnote/ post request for other pages:"
 
-
-        pn = PageNote(
-            urllib.unquote(request.form.get('note', '')), 
-            session['user_id']
-        )
-
+        # Determine whether end user selected an image or a highlihted a note:
+        pn = None
+        ui = None
+        if request.form.get('image_url'):
+            ui = UserImage(
+                request.form.get('image_url'),
+                session['user_id']
+            )
+        elif request.form.get('note'):
+            pn = PageNote(
+                urllib.unquote(request.form.get('note', '')), 
+                session['user_id']
+            )
+            
         p = Page(
             request.form.get('source', None),
             request.form.get('page_url', None),
@@ -360,17 +441,15 @@ def add_note():
         if not p.id:
             print "--- Attempting to derive location of the page from the title."
 
-            #Attempt to find the location in free-form text. Tokenize the page title and match against existing cities and countries:
+            #Attempt to detect the location without user input by tokenizing the page title and matching it against existing cities:
+            print "--- Page title: ", p.source_title
             title_tokens = p.source_title.split(" ");
 
             cities = db.session.execute("select distinct city, country from location where city is not null and country is not null")
-            #countries = db.session.execute("select distinct country from location")
 
             location_note_city = None
             location_note_country = None
             found_city = False
-
-
             for row in cities:
                 for token in title_tokens:
                     match_score = fuzz.token_sort_ratio(token.lower(), row['city'].lower())
@@ -382,19 +461,16 @@ def add_note():
                         break
                 if found_city:
                     break
-                #for country in countries:
-                #    if(token.lower() == country['country'].lower()):
-                #        location_note_country = country['country']
 
 
             #Find google location based on the city/country. Then insert it
             if location_note_city and location_note_country:
                 l = Location(
-                        'page', 
-                        location_note_city, 
-                        None, 
-                        None
-                    )
+                    'page', 
+                    location_note_city, 
+                    None, 
+                    None
+                )
                 l.country = location_note_country
                 l.set_lat_lng_state_from_city_country()
 
@@ -408,23 +484,43 @@ def add_note():
             print "--- Inserting page: "
             p.insert()
 
-        print "--- Checking to see if page note exists. If not, insert it"
-        pn.page_id = p.id
-        pn.find()
-        if not pn.id:
-            pn.insert()
+        if pn:
+            print "--- Checking to see if identical page note exists in database. If not, insert it"
+            pn.page_id = p.id
+            pn.find()
+            if not pn.id:
+                pn.insert()
 
-        print "--- Checking if user_page mapping exists. If not, insert it"
-        up = UserPage(session['user_id'], pn.page_id)
-        up.find()
-        if not up.id:
-            up.insert()
+            print "--- Checking if user_page mapping exists in database. If not, insert it"
+            up = UserPage(session['user_id'], pn.page_id)
+            up.find()
+            if not up.id:
+                up.insert()
+            response = jsonify(page_note_id = pn.id, page_id = p.id, note = pn.note, msg = "Inserted note: %s" % pn.note )
 
-        return jsonify(page_note_id = pn.id, page_id = p.id, note = pn.note, msg = "Inserted note: %s" % pn.note )
+        elif ui:
+            print "--- Checking to see if user image exists. If not, insert it"
+            ui.page_id = p.id
+            ui.find()
+            if not ui.id:
+                ui.insert()
+            response = jsonify(user_image_id = ui.id, page_id = p.id, image_url = ui.image_url, msg = "Inserted image: %s" % ui.image_url )
+
+            """
+            image_url =  request.form.get('image_url', None)
+            image_name = 'abc.jpg' 
+            path = 'img/'
+            full_path = os.path.join(path, image_name)       
+
+            f = open(full_path,'wb')
+            f.write(urllib.urlopen(image_url).read())
+            f.close()
+            print "Saved image"
+            """
+        
+        return response
 
 
-    
-    
     #!!! return json instead
     return "No Note Added =("
 
@@ -452,7 +548,7 @@ def update_parent_category():
         new_parent_category_classification = classify_parent_category(category_list)
         if(new_parent_category_classification != row.parent_category):
             new_parent_category = new_parent_category_classification
-            sql = 'update venue set parent_category = "%s" where id = "%s"' % (new_parent_category, row.id)
+            sql = 'update venue set parent_category = "%s" where id = %s' % (new_parent_category, row.id)
             db.session.execute(sql)
             db.session.commit()
             print "--- Changed category for %s from %s to %s" % (row.name, row.parent_category, new_parent_category)
@@ -537,7 +633,7 @@ def delete_page(id):
 def unstar_page(id):
     initialize_session_vars()
 
-    sql = 'update user_page set is_starred = 0 where page_id = %s and user_id=%s' % (id, session['user_id'])
+    sql = 'update user_page set is_starred = False where page_id = %s and user_id=%s' % (id, session['user_id'])
     db.session.execute(sql)
     db.session.commit()
     return redirect(url_for('show_notes', username=session['username']))
@@ -547,7 +643,7 @@ def unstar_page(id):
 def star_page(id):
     initialize_session_vars()
 
-    sql = 'update user_page set is_starred = 1 where page_id = %s and user_id=%s' % (id, session['user_id'])
+    sql = 'update user_page set is_starred = True where page_id = %s and user_id=%s' % (id, session['user_id'])
     db.session.execute(sql)
     db.session.commit()
     return redirect(url_for('show_notes', username=session['username']))
@@ -598,7 +694,7 @@ def delete_venue(id):
 def unstar_venue(id):
     initialize_session_vars()
 
-    sql = 'update user_venue set is_starred = 0 where venue_id = %s and user_id=%s' % (id, session['user_id'])
+    sql = 'update user_venue set is_starred = false where venue_id = %s and user_id=%s' % (id, session['user_id'])
     db.session.execute(sql)
     db.session.commit()
     return redirect(url_for('show_notes', username=session['username']))
@@ -608,7 +704,7 @@ def unstar_venue(id):
 def star_venue(id):
     initialize_session_vars()
 
-    sql = 'update user_venue set is_starred = 1 where venue_id = %s and user_id=%s' % (id, session['user_id'])
+    sql = 'update user_venue set is_starred = true where venue_id = %s and user_id=%s' % (id, session['user_id'])
     db.session.execute(sql)
     db.session.commit()
     return redirect(url_for('show_notes', username=session['username']))
@@ -640,6 +736,22 @@ def show_venues(id):
 # Admin and Database 
 
 
+@app.route('/updatesequencekeys', methods=['GET'])
+def update_sequence_keys():
+
+    all_tables = ['location','venue','venue_category','user_venue','note','page','user_page','page_note']
+
+    for table in all_tables:
+        print "table: ", table
+        sql = "select setval('%s_id_seq', (select max(id) FROM %s)+1)" % (table, table)
+
+        print sql
+        db.session.execute(sql)
+        db.session.commit()
+
+    return 'done'
+
+
 @app.route('/admin', methods=['GET'])
 #!!! @login_required 
 def show_admin_pages():
@@ -663,6 +775,10 @@ def create_tables():
     Page.__table__.create(db.session.bind, checkfirst=True)
     PageNote.__table__.create(db.session.bind, checkfirst=True)
     UserPage.__table__.create(db.session.bind, checkfirst=True)
+    
+    
+    UserImage.__table__.create(db.session.bind, checkfirst=True)
+    
 
     #db.session.execute.create_all()
     return "created tables"
@@ -671,6 +787,8 @@ def create_tables():
 @app.route('/droptables')
 #!!! @login_required 
 def drop_tables(): 
+
+    UserImage.__table__.drop(db.session.bind, checkfirst=True)
 
     Note.__table__.drop(db.session.bind, checkfirst=True)
     VenueCategory.__table__.drop(db.session.bind, checkfirst=True)
@@ -683,6 +801,7 @@ def drop_tables():
 
     Location.__table__.drop(db.session.bind, checkfirst=True)
     User.__table__.drop(db.session.bind, checkfirst=True)
+    
 
     db.session.commit()
 
@@ -735,13 +854,13 @@ def get_cities():
 
     
     sql = "select city, max(id) id from location %s group by city" % (where_filter);
-    print sql
+    #print sql
     cities_result_set = db.session.execute(sql)
 
     city = {}
     cities = []
     for row in cities_result_set:
-        print row.city
+        #print row.city
         city = {}
         city['id'] = row.id
         city['city'] = row.city
@@ -764,6 +883,7 @@ def get_pages_without_location():
 
     pages =[]
     for row in page_notes_result_set:
+
         item = dict(
              id=row.id,
              source_url=row.source_url, 
@@ -781,9 +901,11 @@ def get_pages_with_notes():
 
     #Query Venues, apply filters
     #!!! Move to model
-    page_notes_result_set = Page.query.join(Location).join(UserPage) \
+    page_notes_result_set = Page.query.join(Location).join(UserPage).outerjoin(UserImage).outerjoin(PageNote) \
                             .filter(PageNote.user_id == session['page_user_id']) \
                             .order_by(UserPage.is_starred.desc(),Page.id.asc())
+
+
 
     # If city is filtered, find the lat/long of the first item in that city and return all other 
     # locations within zoom miles from it
@@ -807,18 +929,19 @@ def get_pages_with_notes():
         locationIDs = []
         for location in locations:
             locationIDs.append(location.id)
+        print "--- Filtered city: ", session['city']
+        print "--- Filtering locations to: ", locationIDs
         page_notes_result_set = page_notes_result_set.filter( (Location.id.in_(locationIDs)) | (Location.city == session['city']))
-        
+
 
     if session['country'] != '':
         print "~~~ filtered country:", session['country']
         page_notes_result_set = page_notes_result_set.filter(Location.country == session['country'])
     if session['is_hidden'] != '':
         print "~~~ is_hidden:", session['is_hidden']
-        page_notes_result_set = page_notes_result_set.filter(UserVenue.is_hidden == False)
-
+        page_notes_result_set = page_notes_result_set.filter(UserPage.is_hidden == False)
+    #print '='*50
     #print page_notes_result_set;
-
 
     pages =[]
     for row in page_notes_result_set:
@@ -829,9 +952,17 @@ def get_pages_with_notes():
                 id = note_row.id
                 )
             notes_array.append(item)
+        images_array = []
+        for img_row in row.images:
+            item = dict(
+                image_url = img_row.image_url,
+                id = img_row.id
+                )
+            images_array.append(item)
         #!!! convert rating from string to float
         item = dict(
              notes=notes_array, 
+             images=images_array, 
              id=row.id,
              source_url=row.source_url, 
              source_title=row.source_title, 
@@ -844,6 +975,8 @@ def get_pages_with_notes():
         )
         pages.append(item) 
 
+        #print item['source_title']
+
     return pages
 
 @app.route('/venues', methods=['GET'])
@@ -852,9 +985,10 @@ def get_venues_with_notes():
 
     #Query Venues, apply filters
     #!!! Move to model
-    venues_result_set = Venue.query.join(Location).join(UserVenue) \
+    venues_result_set = Venue.query.join(Location).join(UserVenue).outerjoin(UserImage) \
                             .filter(Note.user_id == session['page_user_id']) \
                             .order_by(UserVenue.is_starred.desc(),Venue.name.asc())
+
 
     # If city is filtered, find the lat/long of the first item in that city and return all other 
     # locations within zoom miles from it
@@ -904,9 +1038,17 @@ def get_venues_with_notes():
                 id = note_row.id
                 )
             notes_array.append(item)
+        images_array = []
+        for img_row in row.images:
+            item = dict(
+                image_url = img_row.image_url,
+                id = img_row.id
+                )
+            images_array.append(item)
         #!!! convert rating from string to float
         item = dict(
              notes=notes_array, 
+             images=images_array, 
              id=row.id,
              name=row.name, 
              parent_category=row.parent_category, 
@@ -931,7 +1073,7 @@ def get_venues_with_notes():
         )
 
         venues.append(item) 
-
+             
 
     #Google Maps Requires the response to have a particular format
     #!!! fix this
@@ -973,17 +1115,99 @@ def update_venue_categories():
 
 
 
+
 @app.route('/', methods=['GET'])
 def redirect_to_username_homepage():
+
+    print '-' * 50
+    print "is hidden /: ", request.args.get('is_hidden')
     initialize_session_vars()
+
+    if not 'username' in session:
+        session['username'] = 'almostvindiesel'
+
     return redirect(url_for('show_notes', username=session['username']))
     #return redirect(url_for('show_notes'))
     #return redirect("/profile/" + session['username'])
 
 
+@app.route('/new', methods=['GET'])
+def new_layout():
+
+    #!!!
+    session['username'] = 'almostvindiesel'
+
+    #Get Session Filters and Convert them for use with sql where statements
+    #session['username'] = username
+    initialize_session_vars()
+
+    #Get Venues, Pages, and Pages without a location (for location categorization)
+    venues = get_venues_with_notes()
+    pages  = get_pages_with_notes()
+    pages_no_loc = get_pages_without_location()
+
+
+    #Unique Cities, limited by existing selections
+    #!!! move to model
+    city_sql = "select distinct city \
+           from venue v \
+             inner join user_venue uv on v.id = uv.venue_id \
+             inner join location l on l.id = v.location_id \
+           where uv.user_id=%s and city is not null" % (session['page_user_id'])
+    for key in session:
+        if key == 'country' or key == 'parent_category' or key == 'is_hidden':
+            if session[key] != '':
+                city_sql = city_sql + " and %s='%s' " % (key, session[key])
+    cities = db.session.execute(city_sql)
+
+
+    #Unique Countries, limited by existing selections
+    #!!! move to model
+    state_sql = "select distinct country \
+           from venue v \
+             inner join user_venue uv on v.id = uv.venue_id \
+             inner join location l on l.id = v.location_id \
+           where uv.user_id=%s and city is not null" % (session['page_user_id'])
+    countries = db.session.execute(state_sql)
+
+
+    #Unique Categories, limited by existing selections
+    #!!! add user id, move to model
+    parent_category_sql = "select distinct parent_category \
+           from venue v \
+             inner join user_venue uv on v.id = uv.venue_id \
+             inner join location l on l.id = v.location_id \
+           where uv.user_id=%s and city is not null" % (session['page_user_id'])
+    for key in session:
+        if key == 'country' or key == 'is_hidden' or key == 'city':
+            if session[key] != '':
+                parent_category_sql = parent_category_sql + " and %s='%s' " % (key, session[key])
+    parent_category_sql = parent_category_sql + " order by parent_category asc"                
+    parent_categories = db.session.execute(parent_category_sql)
+
+
+    #User
+    page_user = User.query.filter_by(id = session['page_user_id']).first()
+
+
+    #Shareable url
+    session['share_url'] = "%s/profile/%s?" % (app.config['HOSTNAME'],session['username'])
+    for key in session:
+        if key == 'city' or key == 'country' or key == 'parent_category' or key == 'is_hidden' or key == 'zoom':
+            if session[key] != '':
+                session['share_url'] = session['share_url'] + "%s=%s&" % (key,session[key])
+    session['share_url'] = session['share_url'][:-1]
+
+
+
+    return render_template('index.html', venues=venues, pages=pages, pages_no_loc=pages_no_loc, \
+                            cities=cities, countries=countries, \
+                            parent_categories=parent_categories, user=page_user)
+    #return dumps(locations_json)
+
+
 @app.route('/profile/<username>', methods=['GET'])
 def show_notes(username):
-
 
 
     #Get Session Filters and Convert them for use with sql where statements
@@ -1097,23 +1321,21 @@ def initialize_session_vars():
                 #!!! Future iteration: redirect to localhost
                 session['page_user_id'] = 'almostvindiesel'
 
-
-
-
-
     #if username and the user_id is the same, then 
 
     #If user
 
+    #print "is hidden get before: ", request.args.get('is_hidden')
+    #print "is hidden session before: ", session['is_hidden'] 
 
-    if request.args.get('is_hidden'):
-        print "is hidden: ", request.args.get('is_hidden')
-        if request.args.get('is_hidden') == 'showhidden':
+    if request.args.get('lystvisibility'):
+        if request.args.get('lystvisibility') == 'showhidden':
             session['is_hidden'] = ''
-        elif request.args.get('is_hidden') == ' ':
-            session['is_hidden'] = 0
-    else:
-        session['is_hidden'] = 0
+        elif request.args.get('lystvisibility') == 'hidehidden':
+            session['is_hidden'] = False
+    elif 'is_hidden' not in session:
+        session['is_hidden'] = ''
+    print "is hidden session after: ", session['is_hidden'] 
 
     if request.args.get('parent_category'):
         session['parent_category'] = request.args.get('parent_category')

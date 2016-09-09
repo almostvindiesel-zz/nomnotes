@@ -106,9 +106,11 @@ class Location(db.Model):
         try:
             db.session.add(self)
             db.session.commit()
-            print "--- inserted location:", self.id, self.city, self.latitude, self.longitude
+            print "--- inserted location:", self.id, self.city, self.city, self.latitude, self.longitude
         except Exception as e:
-            print "Could not insert location:", self.id, e.message, e.args
+            print "Could not insert location, attributes:"
+            print "id: %s ltype: %s city: %s country: %s latitude: %s longitude: %s" % (self.id, self.ltype, self.city, self.country, self.latitude, self.longitude)
+            print e.message, e.args
 
     def set_city_state_country_with_lat_lng_from_google_location_api(self):
 
@@ -201,21 +203,22 @@ class FoursquareVenues():
 
         #Extract relevant attributes from the datum:
         self.venues = []
-        for venue in venues_json['response']['venues']:
-            v = FoursquareVenue()
 
-            #!!! Shoud get more than one category...
-            if len(venue['categories']) > 0:
-                v.categories = venue['categories'][0]['name']
+        if venues_json['response']:
+            for venue in venues_json['response']['venues']:
+                v = FoursquareVenue()
 
-            v.foursquare_id = venue['id']
-            v.foursquare_url = 'https://foursquare.com/v/' + v.foursquare_id
-            v.name = venue['name']
-            v.latitude = venue['location']['lat']
-            v.longitude = venue['location']['lng']
+                #!!! Shoud get more than one category...
+                if len(venue['categories']) > 0:
+                    v.categories = venue['categories'][0]['name']
 
-            self.venues.append(v)
+                v.foursquare_id = venue['id']
+                v.foursquare_url = 'https://foursquare.com/v/' + v.foursquare_id
+                v.name = venue['name']
+                v.latitude = venue['location']['lat']
+                v.longitude = venue['location']['lng']
 
+                self.venues.append(v)
 
         #print "--- First Venue Returned: ", self.venues[0].name
         #return jsonify({'venues': venues})
@@ -238,6 +241,60 @@ class User(db.Model, UserMixin):
     last_name = db.Column(db.String(100), nullable=False, server_default='')
     __table_args__ = {'mysql_charset': 'utf8'}
 
+
+class UserImage(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+
+    image_url = db.Column(db.String(512))
+    image_thumb = db.Column(db.String(100))
+    image_large = db.Column(db.String(100))
+
+    page_id = db.Column(db.Integer, db.ForeignKey('page.id'), nullable=True)
+    venue_id = db.Column(db.Integer, db.ForeignKey('venue.id'), nullable=True)
+
+    is_hidden  = db.Column(db.Boolean(), default=False)                                      
+    is_starred = db.Column(db.Boolean(), default=False)                                      
+
+    added_dt  = db.Column(db.DateTime(timezone=True), server_default=func.now())
+    updated_dt  = db.Column(db.DateTime(timezone=True), onupdate=func.now())
+    __table_args__ = {'mysql_charset': 'utf8'}
+
+    UniqueConstraint('user_id', 'image_url', name='user_image_constraint')
+
+    def __init__(self, image_url, user_id):
+        self.image_url = image_url
+        self.user_id = user_id
+        self.page_id = None
+        self.venue_id = None
+        self.is_hidden = False
+        self.is_starred = False
+
+    def __repr__(self):
+        return '<UserImage %r>' % self.id
+
+    def insert(self):
+        try:
+            db.session.rollback()
+            db.session.add(self)
+            db.session.commit()
+
+            print "--- inserted user image:", self.id
+        except Exception as e:
+            db.session.rollback()
+            print "Could not insert user image: image_url %s user_id: %s page_id: %s, venue_id: %s" % (self.image_url, self.user_id, self.page_id, self.venue_id)
+            print e.message, e.args
+
+    def find(self):
+        try: 
+            #!!! Is this the right way to query?
+            ui = UserImage.query.filter_by(page_id = self.image_url, user_id = self.user_id).first()
+            self.id = ui.id
+            print "--- Found UserImage", self.id
+            return self
+        except Exception as e:
+            print "No existing user image found by searching for user_id %s and image_url %s" % (self.user_id, self.image_url) 
+            return self
 
 
 class UserPage(db.Model):
@@ -275,6 +332,7 @@ class UserPage(db.Model):
             #!!! Is this the right way to query?
             up = UserPage.query.filter_by(page_id = self.page_id, user_id = self.user_id).first()
             self.id = up.id
+            print "--- Found UserPage", self.id
             return self
         except Exception as e:
             print "No existing userpage found by searching for user_id %s and page_id %s" % (self.user_id, self.page_id) 
@@ -292,6 +350,7 @@ class Page(db.Model):
     location = db.relationship('Location', backref='page_location', uselist=False)
 
     notes = db.relationship('PageNote', backref='page', lazy='dynamic')
+    images = db.relationship('UserImage', backref='user_image_p', lazy='dynamic')
     user_page = db.relationship('UserPage', backref='user_page', uselist=False)
 
 
@@ -326,6 +385,7 @@ class Page(db.Model):
                 #!!! Is this the right way to query?
                 p = Page.query.filter_by(source_url = self.source_url).first()
                 self.id = p.id
+                print "--- Found Page", self.id
                 return self
             except Exception as e:
                 print "No existing page found by searching for source_url: %s" % (self.source_url) 
@@ -371,6 +431,7 @@ class PageNote(db.Model):
                 #!!! Is this the right way to query?
                 pn = PageNote.query.filter_by(page_id = self.page_id, note = self.note).first()
                 self.id = pn.id
+                print "--- Found PageNote", self.id
                 return self
             except Exception as e:
                 print "No existing page_note found by searching for page_id %s and note: %s" % (self.page_id, self.note) 
@@ -415,6 +476,22 @@ class Note(db.Model):                                                           
         except Exception as e:
             print "Could not insert note: ", self.note[:50], "\r\n", e.message, e.args
 
+    def find(self):
+        if self.note and self.venue_id:
+            try: 
+                #!!! Is this the right way to query?
+                n = Note.query.filter_by(venue_id = self.venue_id, note = self.note).first()
+                self.id = n.id
+                print "--- Found Note", self.id
+                return self
+            except Exception as e:
+                print "No existing page_note found by searching for venue_id %s and note: %s" % (self.venue_id, self.note) 
+                return self
+        else:
+            print "No venue_id / note to search against. Add one first."
+            return self
+
+
 #insert into user_venue (user_id,venue_id,is_hidden,is_starred,added_dt,updated_dt) 
 #select 2, id, is_hidden,is_starred,added_dt,updated_dt id from venue;
 class UserVenue(db.Model):
@@ -437,6 +514,17 @@ class UserVenue(db.Model):
 
     def __repr__(self):
         return '<UserVenue %r>' % self.id
+
+    def find(self):
+        try: 
+            #!!! Is this the right way to query?
+            uv = UserVenue.query.filter_by(user_id = self.user_id, venue_id = self.venue_id).first()
+            self.id = uv.id
+            print "--- Found UserVenue", self.id
+            return self
+        except Exception as e:
+            print "No existing user venue found by searching for user_id %s and venue_id %s" % (self.user_id, self.venue_id) 
+            return self
 
     def insert(self):
         try:
@@ -476,6 +564,7 @@ class Venue(db.Model):
     user_venue = db.relationship('UserVenue', backref='user_venue', uselist=False)
 
     notes = db.relationship('Note', backref='venue', lazy='dynamic')
+    images = db.relationship('UserImage', backref='user_image_v', lazy='dynamic')
     categories = db.relationship('VenueCategory', backref='venue', lazy='dynamic')
 
     added_dt  = db.Column(db.DateTime(timezone=True), server_default=func.now())

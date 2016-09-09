@@ -1,12 +1,12 @@
 <!--
 
-Next Up
-- moving source url params, etc from pages
-- category resolution
-- adding a location to a url
-- Matching location to page
-  korcula v korc(accent)ula
-  http://www.korculainfo.com/beaches/
+
+/*
+
+Not resolving... perhaps bc an attraction?
+https://www.tripadvisor.com/Attraction_Review-g1759888-d6601942-Reviews-River_Buna_Spring-Blagaj_Herzegovina_Neretva_Canton.html
+
+ */ 
 
 
 
@@ -257,6 +257,8 @@ Next Steps
         i.focus();
         //i.select();
 
+
+
       }
 
 
@@ -306,9 +308,17 @@ Next Steps
              action : 'new_venue_note_from_home'
             },
             function(data, textStatus, jqXHR) {
+              console.log("response: ");
               console.log(data);
-              completed_new_note = "<li>"+decodeURIComponent(data.note)+"<a class=deletesymbol href=/deletenote/id/"+data.note_id+"> x</a> </li>";
-              var input = $('#newnoteforvenueform' + venue_id.toString()).replaceWith(completed_new_note);
+              //completed_new_note = "<li>"+decodeURIComponent(data.note)+"<a class=deletesymbol href=/deletenote/id/"+data.note_id+"> x</a> </li>";
+              //var input = $('#newnoteforvenueform' + venue_id.toString()).replaceWith(completed_new_note);
+
+              var element_id = "v" + data.venue_id + "_" + "n" + data.note_id
+              var completed_new_note = "<li id="+element_id+" venue_id="+data.venue_id+" note_id="+data.note_id+" class=venuenote>"+decodeURIComponent(data.note)+"<a class=deletesymbol href=/deletenote/id/"+data.note_id+"> x</a> </li>";
+              $('#newnoteforvenueform' + venue_id.toString()).replaceWith(completed_new_note);
+
+
+
             });
         } else {
           document.getElementById ( 'newnoteforvenueform' + venue_id.toString() ).remove();
@@ -340,10 +350,7 @@ Next Steps
             //console.log(data);
 
             var element_id = "v" + data.venue_id + "_" + "n" + data.note_id
-
             var edited_note = "<li id="+element_id+" venue_id="+data.venue_id+" note_id="+data.note_id+" class=venuenote>"+decodeURIComponent(data.note)+"<a class=deletesymbol href=/deletenote/id/"+data.note_id+"> x</a> </li>";
-
-
             $('#' + element_id.toString()).replaceWith(edited_note);
             //console.log( $('#editnoteforvenueform' + data.venue_id ));
           });
@@ -442,7 +449,7 @@ Next Steps
         note_id  = edited_note.getAttribute('note_id')
         note     = edited_note.value
 
-        //console.log ("submiteditednote" + note + " " + note_id.toString() + " " +page_id.toString());
+        console.log ("submiteditednote: " + note + " " + note_id.toString() + " " +page_id.toString());
         url = '/editpagenote';
 
         $.post(
@@ -471,7 +478,7 @@ Next Steps
     {% if session.can_edit %}
       <script>
 
-      // Catches all Clicks
+      // Catches all Public Clicks
       $(document).click(function(event) {
         var element = $(event.target);
 
@@ -511,18 +518,59 @@ Next Steps
           }
       });
 
+      </script>
+    {% endif %}
+
+    <script>
+
       /* !!! Should switch to a listener rather than inline handler
          Triggered when user higlights an element  
       */
       function addBorder(element) {
-        element.style.backgroundColor = "#e2dede";
+        element.style.backgroundColor = "#ffffff";
       }
       function removeBorder(element) {
         element.style.backgroundColor = "";
       }
 
-      </script>
-    {% endif %}
+
+     $(document).click(function() {
+
+       var currentMaxHeight = $("#" + event.target.id).css('max-height') ;
+       //console.log(currentMaxHeight);
+        
+
+        //Expand and Shrink Images
+        if ((event.target.className == 'pageimage' || event.target.className == 'venueimage') //) {
+             && (currentMaxHeight == "140px")) {
+
+            $(".pageimage").css({
+                 maxHeight: "140px", 
+                 maxWidth: "140px"
+             });
+            $(".venueimage").css({
+                 maxHeight: "140px", 
+                 maxWidth: "140px"
+             });
+            $("#" + event.target.id).css({
+                 maxHeight: "500px", 
+                 maxWidth: "600px"
+             });
+            //event.target.id = "500px";
+        } else {
+            $(".pageimage").css({
+                 maxHeight: "140px", 
+                 maxWidth: "140px"
+             });
+            $(".venueimage").css({
+                 maxHeight: "140px", 
+                 maxWidth: "140px"
+             });
+        }
+
+      });
+
+    </script>
 
   </head>
 
@@ -530,16 +578,17 @@ Next Steps
   <!--  Header -->
   <div class="container-fluid" >
     <div id="header">
-
-      {% if session.can_edit == 1 %}
-        Hello, <b>{{ user.username }}</b> 
-      {% else %}
-        <a href=/>Login</a> or <a href=/>Register</a>
-      {% endif %}
-      | <a href='{{ session.share_url }}'> Share these Noms</a>
-
-      <br>
-
+      <span>
+        <img src=/static/img/itlyst-logo.png width=150>
+      </span>
+      <span>
+        {% if session.can_edit == 1 %}
+          <!--Hello, <b>{{ user.username }}</b> -->
+        {% else %} 
+        | <a href=/user/sign-in>Login</a> or <a href=/>Register</a>
+        {% endif %}
+        <!--| <a href='{{ session.share_url }}'> Share this Lyst</a>-->
+      </span>
     </div>
   </div>
 
@@ -554,7 +603,7 @@ Next Steps
 
 
         <!--Country, City, and Category Filters -->
-            <!--<td rowspan=6><img src=/static/img/nomnotes-logo.png width=80></td>-->
+            
 
         <div id='filters'>
           <table>
@@ -600,10 +649,10 @@ Next Steps
                 {% endfor %}
                 &nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;
                 Visibility&nbsp;&nbsp;
-                {% if session['is_hidden'] == 0 %}
-                   <a href='/?is_hidden=showhidden'>Show Hidden</a>
+                {% if session['is_hidden'] == False %}
+                   <a href='/?lystvisibility=showhidden'>Show Hidden</a>
                 {% else %}
-                   <a href='/?is_hidden=hidehidden'>Hide Hidden</a>
+                   <a href='/?lystvisibility=hidehidden'>Hide Hidden</a>
                 {% endif %}
                 &nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;
                 Category&nbsp;&nbsp;
@@ -660,9 +709,9 @@ Next Steps
             {% if datum.yelp_url %}
               <a target='_blank' href='{{ datum.yelp_url }}'><img class=logos src=/static/img/yelp-icon.png></a>
             {% endif %}
-            <a target='_blank' href='http://google.com/maps?q={{ datum.latitude }},{{ datum.longitude }}'>
+            <!--<a target='_blank' href='http://google.com/maps?q={{ datum.latitude }},{{ datum.longitude }}'>
               <img class=logos src=/static/img/gmaps-icon.png>
-            </a>
+            </a>-->
             <a target='_blank' href='http://www.google.com/maps/search/{{ datum.name }}/@{{ datum.latitude }},{{ datum.longitude }}/14z'>
               <img class=logos src=/static/img/gmaps-icon.png>
             </a>
@@ -682,10 +731,35 @@ Next Steps
                   {% endif %}
                 </li>
             {% endfor %}
+
+            
+            {% for image in datum.images %}
+              <span class=image>
+                <img src={{ image.image_url  }} class=venueimage id='v{{datum.id}}_i{{image.id}}'><span class=pageimage>{% if session.can_edit %}<a class=deletesymbolimage href='/deleteimage/id/{{ image.id }}' >x</a></span>{% endif %}
+               </span>
+               &nbsp;
+            {% endfor %}
+            
+
              </ul>
             {% set venue_nbr = venue_nbr + 1 %}
           {% endfor %}
+
+          
+          <!--
+          {% for datum in venues %}
+            {% for image in datum.images %}
+              <span class=image>
+                <img src={{ image.image_url  }} class=venueimage id='v{{datum.id}}_i{{image.id}}'><span class=pageimage>{% if session.can_edit %}<a class=deletesymbolimage href='/deleteimage/id/{{ image.id }}' >x</a></span>{% endif %}
+               </span>
+               &nbsp;
+            {% endfor %}
+          {% endfor %}
+        -->
+
           </ul>
+
+
 
         <!-- Pages -->
         <!-- !!! Not sure hwo to see -->
@@ -726,16 +800,23 @@ Next Steps
                   {% endif %}
                 </li>
             {% endfor %}
+
+            {% for image in datum.images %}
+            <span class=image>
+                <img src={{ image.image_url  }} class=pageimage id='p{{datum.id}}_i{{image.id}}'><span class=pageimage>{% if session.can_edit %}<a class=deletesymbolimage href='/deleteimage/id/{{ image.id }}' >x</a></span>{% endif %}
+            </span>
+            &nbsp;
+            {% endfor %}
+
              </ul>
             {% set page_nbr = page_nbr + 1 %}
           {% endfor %}
           </ul>
 
-        <!--  -->
+        <!--  Pages without locations -->
         {% if pages_no_loc  %}
-          <h2>General Lysts</h2>
+          <h2>Lysts without Locations</h2>
         {% endif %}
-        <h2>Lysts without Locations</h2>
           <ul class='pagelistsul'>
           {% set page_nbr = 0 %}
           {% for datum in pages_no_loc %}

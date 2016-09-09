@@ -112,6 +112,34 @@ button:focus {}
 	outline:0;
 }
 
+
+/*
+.deletesymbolimage {
+	vertical-align: top;
+	font-weight: bold;
+}
+*/
+
+span.image {
+  position:relative;
+  vertical-align: text-top;
+}
+
+img.venueimage, img.pageimage {
+  max-width: 140px;
+  max-height: 140px;
+  border-radius: 4px; 
+  vertical-align: top;
+}
+
+span.image a.deletesymbolimage, span.image a.deletesymbolimage {
+  /*left:98%;*/
+  top:-50%;
+  font-weight: bold;
+  position:absolute;	
+  vertical-align: top;	
+}
+
 .venuelistsul, .pagelistsul {
   margin: 0;
   padding: 0;
