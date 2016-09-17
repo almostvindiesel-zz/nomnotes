@@ -751,9 +751,9 @@ $(document).click(function(event) {
     var citySearch = new Bloodhound({
       datumTokenizer: Bloodhound.tokenizers.obj.whitespace('city'),
       queryTokenizer: Bloodhound.tokenizers.whitespace,
-      prefetch: 'http://localhost:5000/cities',
+      prefetch: '/cities',
       remote: {
-        url: 'http://localhost:5000/cities?q=%QUERY',
+        url: '/cities?q=%QUERY',
         wildcard: '%QUERY'
       }
     });
@@ -793,9 +793,9 @@ $(document).click(function(event) {
     var countrySearch = new Bloodhound({
       datumTokenizer: Bloodhound.tokenizers.obj.whitespace('country'),
       queryTokenizer: Bloodhound.tokenizers.whitespace,
-      prefetch: 'http://localhost:5000/countries',
+      prefetch: '/countries',
       remote: {
-        url: 'http://localhost:5000/countries?q=%QUERY',
+        url: '/countries?q=%QUERY',
         wildcard: '%QUERY'
       }
     });
@@ -889,9 +889,9 @@ $(document).click(function(event) {
     var cityAssigner = new Bloodhound({
       datumTokenizer: Bloodhound.tokenizers.obj.whitespace('city'),
       queryTokenizer: Bloodhound.tokenizers.whitespace,
-      prefetch: 'http://localhost:5000/cities',
+      prefetch: '/cities',
       remote: {
-        url: 'http://localhost:5000/cities?q=%QUERY',
+        url: '/cities?q=%QUERY',
         wildcard: '%QUERY'
       }
     });

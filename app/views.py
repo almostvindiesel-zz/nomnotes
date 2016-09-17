@@ -45,7 +45,7 @@ from models import UserVenue, UserPage, Page, PageNote, UserImage, EmailInvite, 
 
 db_adapter = SQLAlchemyAdapter(db, User)        # Register the User model
 user_manager = UserManager(db_adapter, app)     # Initialize Flask-User
-#mail = Mail(app)  
+mail = Mail(app)  
 
 
 @app.route('/addemailinvite', methods=['POST'])
@@ -816,6 +816,11 @@ def show_admin():
 
     table_names = ['email_invite', 'user', 'location', 'venue', 'venue_category', \
                    'user_venue', 'note', 'page', 'page_note', 'user_page', 'user_image', 'zdummy']
+
+
+    #Drop Order
+
+
 
 
     return render_template('show_admin.html', table_classes=table_classes, table_names=table_names, msg=msg)
