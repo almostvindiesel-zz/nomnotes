@@ -129,7 +129,9 @@ Next Steps
 
       // Clickable list http://marcgrabanski.com/jquery-google-maps-tutorial-basics/
       function initialize(markers) {
-        map = new google.maps.Map(document.getElementById('map'), {});
+        map = new google.maps.Map(document.getElementById('googmap'), {
+          scrollwheel:  false
+        });
         infowindow = new google.maps.InfoWindow();
 
         // Create a <script> tag and set the USGS URL as the source.
@@ -147,6 +149,11 @@ Next Steps
           //var infowindow = new google.maps.InfoWindow();
           var bounds = new google.maps.LatLngBounds();
 
+
+          console.log(options);
+
+
+
           for (var i = 0; i < results.markers.length; i++) {
             var latLng = new google.maps.LatLng(results.markers[i].latitude,results.markers[i].longitude);
             var marker = new google.maps.Marker({
@@ -157,6 +164,8 @@ Next Steps
             markers[i] = marker;
 
             bounds.extend(marker.position);
+
+
 
             // Show Title on Click
             google.maps.event.addListener(marker, 'click', (function (marker, i) {
@@ -173,7 +182,6 @@ Next Steps
                   //document.body.appendChild(div);
               }
             })(marker, i));
-
         }
 
         var listener = google.maps.event.addListener(map, 'idle', function() { 
@@ -522,7 +530,6 @@ Next Steps
     {% endif %}
 
     <script>
-
       /* !!! Should switch to a listener rather than inline handler
          Triggered when user higlights an element  
       */
@@ -573,7 +580,6 @@ Next Steps
     </script>
 
   </head>
-
 
   <!--  Header -->
   <div class="container-fluid" >
@@ -915,7 +921,7 @@ Next Steps
       <div class="col-lg-3">
                     
         <br><br><br><br><br><br>
-        <div id='map'>
+        <div id='googmap'>
           <script async defer 
               src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDoemInMQhCNVqELI9R58ass8f7MnzvjPM&libraries=visualization&callback=initialize">
           </script>

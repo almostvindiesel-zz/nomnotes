@@ -17,8 +17,13 @@
             </div>
             <div class="col-xs-6 text-right">
                 {% if user_manager.enable_register and not user_manager.require_invitation %}
+                    <!--
+                    Removing at the momemnt since don't want registration
+
                     <a href="{{ url_for('user.register') }}" tabindex='190'>
                         {%trans%}New here? Register.{%endtrans%}</a>
+
+                    -->
                 {% endif %}
             </div>
         </div>

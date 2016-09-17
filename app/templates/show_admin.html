@@ -6,6 +6,30 @@
 
   </head>
   <body>
+    <p style="color:red">{{ msg }}</p>
+
+
+    <h3>Database Adminstration</h3>
+
+      <ul>
+        <li> Create table: 
+          {% for table in table_classes %}
+            <a href='/admin/api/createtable/{{ table }}'>{{ table }}</a>, 
+          {% endfor %}
+        </li>
+        <li> Drop table: 
+          {% for table in table_classes %}
+            <a href='/admin/api/droptable/{{ table }}'>{{ table }}</a>, 
+          {% endfor %}
+        </li>
+        <!--
+        <li> Truncate table: 
+          {% for table in table_classes %}
+            <a href=//admin/api/truncatetable/{{ table }}>{{ table }}</a>, 
+          {% endfor %}
+        </li>
+        -->
+      </ul>
 
     <h2>Admin Pages</h2>
     <ul>

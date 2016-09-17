@@ -1,3 +1,29 @@
+/*@font-face {
+    font-family: "chalkdust";
+    src: url("/static/fonts/ChalkDust.ttf");
+}*/
+
+/*
+p.customfont { 
+    font-family: "My Custom Font", Verdana, Tahoma;
+}*/
+
+
+.fa-userratingdisplay {
+	font-size: 18px;
+
+}
+
+
+body, html, .gmapsecondiv {
+  height: 100%;
+  width: 100%;
+}
+
+.panel_toolbox {
+    min-width: 0px;
+}
+
 #filters {
 	/* background-color: #ccd0e2; */
 }
@@ -7,20 +33,24 @@
 	/*	width: 550; */
 }
 
-body  {
+body {
 	background: #eee; 
+	/*font-family: 'Helvetica Neue",Helvetica,Arial,sans-serif';*/
+	font-size: 13px;
+	color: black;
 }
 
-
+/*
 h2 { 
 	font-family: sans-serif; 
 	font-size: 1.1em;
 
 }
+*/
 
 ul, li, p, table, td { 
-	font-family: sans-serif; 
-	font-size: 1.0em;
+	/*font-family: sans-serif; 
+	font-size: 1.0em;*/
 }
 
 td { 
@@ -62,6 +92,8 @@ h2 + ul {
     margin-top: -3px;
 }
 
+
+
 @media (min-width: 1200px) {
   .container-fluid {
     width: 1800px;
@@ -84,19 +116,54 @@ h2 + ul {
 
 button:focus {}
 
-#map {
-	width: 100%;
-	height: 500;
+
+#googmapparent {
+ 	width: 300px;
+	height: 500px;
 }
 
-.newnotetext, .newpagenotetext {
+#googmap {
+ 	/*width: 300;
+	height: 300;*/
+
+	/*margin: 0;
+    padding: 0;*/
+    
+    position: absolute; 
+
+    top: 0; 
+    right: 0;
+    bottom: 0; 
+    left: 0;
+
+    
+}
+
+/*
+#venuemap {
+	position:fixed; 
+	width: 100;
+	height: 100;
+}
+
+
+
+/*
+#map_canvas_container {
+	position: relative;
+}
+*/
+
+
+
+
+
+.newnotetext, .newpagenotetext, .editnotetext, .editpagenotetext {
 	width: 500px; 
-	height: 150px	;
-}
-
-.editnotetext, .editpagenotetext {
-	width:  500px;
-    height: 150px;
+	height: 150px;
+	outline: none !important;
+    border: 1px #b6b7ac; 
+    box-shadow: 0 0 2px #b6b7ac;
 }
 
 .logos {
@@ -135,7 +202,7 @@ img.venueimage, img.pageimage {
 span.image a.deletesymbolimage, span.image a.deletesymbolimage {
   /*left:98%;*/
   top:-50%;
-  font-weight: bold;
+  /*font-weight: bold;*/
   position:absolute;	
   vertical-align: top;	
 }
@@ -157,16 +224,24 @@ span.image a.deletesymbolimage, span.image a.deletesymbolimage {
   padding-left: 20px; /* width of icon + whitespace */
 }
 
-.venuelistunstar, .pagelistunstar {
-	background-image: url('/static/img/star-unchecked.png');
+.venuelistunstar:before, .pagelistunstar {
+	/*background-image: url('/static/img/star-unchecked.png');*/
+	font-family: 'FontAwesome';
+	content: '\f10c';  
+	margin:0 5px 0 -15px;
+	color: black;
 }
 
-.venueliststar, .pageliststar {
-	background-image: url('/static/img/star-checked.png');
+.venueliststar:before, .pageliststar:before {/*
+	/*background-image: url('/static/img/star-checked.png');*/
+	font-family: 'FontAwesome';
+	content: '\f118';
+	margin:0 5px 0 -15px;
+	color: black;
 }
 
 .deletesymbol, .addsymbol {
-	font-weight: bold;
+	/*font-weight: bold;*/
 	border: none;
 	background-color: Transparent;
 	padding: 4px 4px;

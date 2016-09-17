@@ -223,6 +223,17 @@ class FoursquareVenues():
         #print "--- First Venue Returned: ", self.venues[0].name
         #return jsonify({'venues': venues})
 
+class Zdummy(db.Model, UserMixin):
+    id = db.Column(db.Integer, primary_key=True)
+    added_dt  = db.Column(db.DateTime(timezone=True), server_default=func.now())
+    __table_args__ = {'mysql_charset': 'utf8'}
+
+    def __init__(self):
+        print 'holla'
+        
+    def __repr__(self):
+        return '<Zdummy %r>' % self.id
+
 class User(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
 
@@ -240,6 +251,34 @@ class User(db.Model, UserMixin):
     first_name = db.Column(db.String(100), nullable=False, server_default='')
     last_name = db.Column(db.String(100), nullable=False, server_default='')
     __table_args__ = {'mysql_charset': 'utf8'}
+
+
+class EmailInvite(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    email = db.Column(db.String(255))  
+    added_dt  = db.Column(db.DateTime(timezone=True), server_default=func.now())
+
+    __table_args__ = {'mysql_charset': 'utf8'}
+
+    UniqueConstraint('email', name='email_constraint')
+
+    def __init__(self, email):
+        self.email = email
+
+    def __repr__(self):
+        return '<Email %r>' % self.id
+
+    def insert(self):
+        try:
+            db.session.rollback()
+            db.session.add(self)
+            db.session.commit()
+
+            print "--- inserted email: ", self.email
+        except Exception as e:
+            db.session.rollback()
+            print "Could not insert email: %s" % (self.email)
+            print e.message, e.args
 
 
 class UserImage(db.Model):
@@ -296,14 +335,19 @@ class UserImage(db.Model):
             print "No existing user image found by searching for user_id %s and image_url %s" % (self.user_id, self.image_url) 
             return self
 
-
+#insert into user_venue (user_id,venue_id,is_hidden,is_starred,added_dt,updated_dt) 
+# ALTER TABLE user_page add column user_rating integer default 0;
+# update user_page set user_rating = 4 where is_starred = true 
+# alter table user_venue add 
 class UserPage(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     page_id = db.Column(db.Integer, db.ForeignKey('page.id'))
 
     is_hidden  = db.Column(db.Boolean(), default=False)                                      
-    is_starred = db.Column(db.Boolean(), default=False)                                      
+    is_starred = db.Column(db.Boolean(), default=False)    
+    user_rating = db.Column(db.Integer, default=0)                          
+                                  
 
     added_dt  = db.Column(db.DateTime(timezone=True), server_default=func.now())
     updated_dt  = db.Column(db.DateTime(timezone=True), onupdate=func.now())
@@ -493,14 +537,17 @@ class Note(db.Model):                                                           
 
 
 #insert into user_venue (user_id,venue_id,is_hidden,is_starred,added_dt,updated_dt) 
-#select 2, id, is_hidden,is_starred,added_dt,updated_dt id from venue;
+# ALTER TABLE user_venue add column user_rating integer default 0;
+# update user_venue set user_rating = 4 where is_starred = true 
+# alter table user_venue add 
 class UserVenue(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     venue_id = db.Column(db.Integer, db.ForeignKey('venue.id'))
 
     is_hidden  = db.Column(db.Boolean(), default=False)                                      
-    is_starred = db.Column(db.Boolean(), default=False)                                      
+    is_starred = db.Column(db.Boolean(), default=False)       
+    user_rating = db.Column(db.Integer, default=0)                          
 
     added_dt  = db.Column(db.DateTime(timezone=True), server_default=func.now())
     updated_dt  = db.Column(db.DateTime(timezone=True), onupdate=func.now())
@@ -536,6 +583,21 @@ class UserVenue(db.Model):
 
 # ALTER TABLE venue add column is_hidden boolean default false after source_title
 # ALTER TABLE venue add column is_starred boolean default false after source_title
+
+"""
+update venue
+set parent_category = 'food'
+where tripadvisor_url like '%Restaurant%'
+  and parent_category = 'unknown'
+  ;
+
+update venue
+set parent_category = 'place'
+where (tripadvisor_url like '%Attraction%' or tripadvisor_url like '%Hotel%')
+  and parent_category = 'unknown'
+"""
+
+
 class Venue(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     location_id = db.Column(db.Integer, db.ForeignKey('location.id'))

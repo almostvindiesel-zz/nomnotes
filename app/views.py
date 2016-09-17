@@ -25,6 +25,7 @@ from sqlalchemy import UniqueConstraint, distinct, func
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.sql import text
 from flask import Flask, request, session, g, redirect, url_for, abort, render_template, render_template_string, flash, jsonify, make_response
+from sqlalchemy.dialects import postgresql
 #from flaskext.mysql import MySQL
 #import MySQLdb
 
@@ -39,16 +40,39 @@ elif(os.environ["NOMNOMTES_ENVIRONMENT"] == 'heroku'):
 """
 
 
-
-
-from models import db, User, Note, Venue, Location, VenueCategory, FoursquareVenue, FoursquareVenues, UserVenue, UserPage, Page, PageNote, UserImage
+from models import db, User, Note, Venue, Location, VenueCategory, FoursquareVenue, FoursquareVenues
+from models import UserVenue, UserPage, Page, PageNote, UserImage, EmailInvite, Zdummy
 
 db_adapter = SQLAlchemyAdapter(db, User)        # Register the User model
 user_manager = UserManager(db_adapter, app)     # Initialize Flask-User
 #mail = Mail(app)  
 
+
+@app.route('/addemailinvite', methods=['POST'])
+#@login_required 
+def add_email_invite():
+    if request.method == 'POST':
+        email = request.form.get('email', None)
+        e = EmailInvite(email)
+        e.insert()
+
+        return jsonify(msg = "success", email = email)
+    else:
+        return jsonify(msg = "no success")
+
 # ----------------------------------------------------------------------------
 # Page Note
+
+@app.route('/ratepage/id/<int:page_id>/<int:user_rating>', methods=['GET'])
+@login_required 
+def rate_page(page_id, user_rating):
+    initialize_session_vars()
+
+    sql = 'update user_page set user_rating = %s where page_id=%s and user_id=%s' % (user_rating, page_id, session['user_id'])
+    db.session.execute(sql)
+    db.session.commit()
+
+    return redirect(url_for('show_notes', username=session['username']))
 
 @app.route('/deletepagenote/id/<int:id>', methods=['GET'])
 @login_required 
@@ -527,34 +551,6 @@ def add_note():
 # ----------------------------------------------------------------------------
 # Helper Functions for Note Dimensions
 
-@app.route('/updateparentcategory', methods=['GET'])
-def update_parent_category():
-
-    #Get all locations
-    locations = Location.query
-
-    #Update each parent category if the classification is new or doesn't exist
-    for row in locations:
-        #Reclassify the the parent category 
-
-        #Transform category dictionary into a list
-        category_list = []
-        for i, item in enumerate(row.categories):
-            #print '~' * 50
-            #print item.category, i
-            #print '~' * 50
-            category_list.append(item.category) 
-
-        new_parent_category_classification = classify_parent_category(category_list)
-        if(new_parent_category_classification != row.parent_category):
-            new_parent_category = new_parent_category_classification
-            sql = 'update venue set parent_category = "%s" where id = %s' % (new_parent_category, row.id)
-            db.session.execute(sql)
-            db.session.commit()
-            print "--- Changed category for %s from %s to %s" % (row.name, row.parent_category, new_parent_category)
-
-    #!!! return json instead
-    return "done"
 
 
 def classify_parent_category(category_list, name_tokens):
@@ -565,7 +561,7 @@ def classify_parent_category(category_list, name_tokens):
     coffees = ['coffee', 'caf']
     foods = ['breakfast', 'italian', 'restaurant', 'mediterranean', 'european', 'seafood' \
              'bakery', 'bakeries', 'pizza', 'ice cream', 'bar', 'pub', 'cocktail' \
-             'donut', 'food', 'ice cream', 'dessert', 'sandwich']
+             'donut', 'food', 'ice cream', 'dessert', 'sandwich','souvlaki']
 
     parent_category = None
 
@@ -648,6 +644,8 @@ def star_page(id):
     db.session.commit()
     return redirect(url_for('show_notes', username=session['username']))
 
+
+
 @app.route('/hidepage/id/<int:id>', methods=['GET'])
 @login_required 
 def hide_page(id):
@@ -687,6 +685,18 @@ def delete_venue(id):
 
     initialize_session_vars()
     return redirect(url_for('show_notes', username=session['username']))
+
+@app.route('/ratevenue/id/<int:venue_id>/<int:user_rating>', methods=['GET'])
+@login_required 
+def rate_venue(venue_id, user_rating):
+    initialize_session_vars()
+
+    sql = 'update user_venue set user_rating = %s where venue_id=%s and user_id=%s' % (user_rating, venue_id, session['user_id'])
+    db.session.execute(sql)
+    db.session.commit()
+
+    return redirect(url_for('show_notes', username=session['username']))
+
 
 
 @app.route('/unstarvenue/id/<int:id>', methods=['GET'])
@@ -751,17 +761,79 @@ def update_sequence_keys():
 
     return 'done'
 
+@app.route('/admin/api/createtable/<table>', methods=['GET'])
+def create_table(table):
 
-@app.route('/admin', methods=['GET'])
+    print '-' * 50
+    print "About to create table: ", table
+
+    import models
+    klass = getattr(models, table)
+    t = klass()
+
+
+    try: 
+        t.__table__.create(db.session.bind, checkfirst=True)
+        msg = "Created table: %s" % (table)
+
+    except Exception as e:
+        print "Exception ", e.message, e.args
+        msg = "Could not create table: %s" % (table)
+            
+    return redirect(url_for('show_admin', msg = msg ))
+
+@app.route('/admin/api/droptable/<table>', methods=['GET'])
+def drop_table(table):
+
+    print '-' * 50
+    print "About to drop table: ", table
+
+    import models
+    klass = getattr(models, table)
+    t = klass()
+
+    try: 
+        t.__table__.drop(db.session.bind, checkfirst=True)
+        msg = "Dropped table: %s" % (table)
+
+    except Exception as e:
+        print "Error ", e.message, e.args
+        msg = "Could not drop table: %s" % (table)
+        
+    return redirect(url_for('show_admin', msg = msg ))
+
+
+
+@app.route('/admin/', methods=['GET'])
 #!!! @login_required 
-def show_admin_pages():
-     return render_template('show_admin.html')
+def show_admin():
+
+    msg = request.args.get('msg', '')
+    print '*' * 50, msg
+
+    table_classes = ['EmailInvite', 'User', 'Location', 'Venue', 'VenueCategory', \
+              'UserVenue', 'Note', 'Page', 'PageNote', 'UserPage', 'UserImage', 'Zdummy' ]
+
+    table_names = ['email_invite', 'user', 'location', 'venue', 'venue_category', \
+                   'user_venue', 'note', 'page', 'page_note', 'user_page', 'user_image', 'Zdummy']
+
+
+    return render_template('show_admin.html', table_classes=table_classes, table_names=table_names, msg=msg)
+
+
+
+@app.route('/admin/api/createtable', methods=['GET'])
 
 
 @app.route('/createtables')
 #!!! @login_required 
 def create_tables(): 
 
+
+
+
+    EmailInvite.__table__.create(db.session.bind, checkfirst=True)
+    
     User.__table__.create(db.session.bind, checkfirst=True)
 
     Location.__table__.create(db.session.bind, checkfirst=True)
@@ -776,9 +848,7 @@ def create_tables():
     PageNote.__table__.create(db.session.bind, checkfirst=True)
     UserPage.__table__.create(db.session.bind, checkfirst=True)
     
-    
     UserImage.__table__.create(db.session.bind, checkfirst=True)
-    
 
     #db.session.execute.create_all()
     return "created tables"
@@ -801,7 +871,8 @@ def drop_tables():
 
     Location.__table__.drop(db.session.bind, checkfirst=True)
     User.__table__.drop(db.session.bind, checkfirst=True)
-    
+
+    EmailInvite.__table__.create(db.session.bind, checkfirst=True)
 
     db.session.commit()
 
@@ -839,6 +910,33 @@ def query_db(db, query, args=(), one=False):
 # ----------------------------------------------------------------------------
 # Controllers / Views
 
+@app.route('/countries', methods=['GET'])
+def get_countries():
+
+    q = request.args.get('q', None)
+    test = request.args.get('test', None)
+
+    #!!! add user
+    if q:
+        where_filter = "where country like '%" + q + "%' and country is not null"
+    else:
+        where_filter = "where country is not null"
+
+    sql = "select country, max(id) id from location %s group by country" % (where_filter);
+    #print sql
+    countries_result_set = db.session.execute(sql)
+
+    country = {}
+    countries = []
+    for row in countries_result_set:
+        country = {}
+        country['id'] = row.id
+        country['country'] = row.country
+        country['tokens'] = row.country.split(" ");
+        countries.append(country)
+    
+    return jsonify(countries)
+
 @app.route('/cities', methods=['GET'])
 def get_cities():
 
@@ -847,7 +945,7 @@ def get_cities():
 
     #!!! add user
     if q:
-        where_filter = "where city like '%" + q + "%' and city is not null"
+        where_filter = "where lower(city) like '%" + q.lower() + "%' and city is not null"
     else:
         where_filter = "where city is not null"
 
@@ -879,7 +977,7 @@ def get_pages_without_location():
     #!!! Move to model
     page_notes_result_set = Page.query.join(UserPage) \
                             .filter(UserPage.user_id == session['page_user_id'], Page.location_id == None) \
-                            .order_by(Page.id.desc())
+                            .order_by(UserPage.user_rating.desc()) \
 
     pages =[]
     for row in page_notes_result_set:
@@ -905,11 +1003,10 @@ def get_pages_with_notes():
                             .filter(PageNote.user_id == session['page_user_id']) \
                             .order_by(UserPage.is_starred.desc(),Page.id.asc())
 
-
-
     # If city is filtered, find the lat/long of the first item in that city and return all other 
     # locations within zoom miles from it
     if session['city'] != '':
+        print "current city: ", session['city']
         l = Location.query.filter_by(city = session['city']).first()
         latitude_start = l.latitude
         longitude_start = l.longitude
@@ -971,7 +1068,9 @@ def get_pages_with_notes():
              city=row.location.city,
              country=row.location.country,
              source=row.source,
-             is_starred=row.user_page.is_starred
+             is_starred=row.user_page.is_starred,
+             user_rating=row.user_page.user_rating
+
         )
         pages.append(item) 
 
@@ -985,9 +1084,9 @@ def get_venues_with_notes():
 
     #Query Venues, apply filters
     #!!! Move to model
-    venues_result_set = Venue.query.join(Location).join(UserVenue).outerjoin(UserImage) \
+    venues_result_set = Venue.query.join(Location).join(UserVenue).outerjoin(UserImage).join(Note) \
                             .filter(Note.user_id == session['page_user_id']) \
-                            .order_by(UserVenue.is_starred.desc(),Venue.name.asc())
+                            .order_by(UserVenue.user_rating.desc()) \
 
 
     # If city is filtered, find the lat/long of the first item in that city and return all other 
@@ -1023,10 +1122,14 @@ def get_venues_with_notes():
     if session['is_hidden'] != '':
         print "~~~ is_hidden:", session['is_hidden']
         venues_result_set = venues_result_set.filter(UserVenue.is_hidden == False)
-    
+    if session['user_rating'] != '':
+        print "~~~ user_rating:", session['user_rating']
+        venues_result_set = venues_result_set.filter(UserVenue.user_rating == session['user_rating'])
     #print '-'*50
-    #print "--- Get Venue SQL: \r\n", venues_result_set
+    venues_result_set = venues_result_set.limit(50)
 
+    print "--- Get Venue SQL: \r\n", 
+    print str(venues_result_set.statement.compile(dialect=postgresql.dialect()))
 
     venues =[]
     for row in venues_result_set:
@@ -1068,8 +1171,8 @@ def get_venues_with_notes():
              yelp_reviews=row.yelp_reviews,
              yelp_rating=str_to_float(row.yelp_rating),
              yelp_url=row.yelp_url,
-             is_starred=row.user_venue.is_starred
-
+             is_starred=row.user_venue.is_starred,
+             user_rating=row.user_venue.user_rating
         )
 
         venues.append(item) 
@@ -1111,24 +1214,59 @@ def update_venue_categories():
     db.session.execute(sql)
     db.session.commit()
 
+    #Get all locations
+    venues = Venue.query
+
+    #Update each parent category if the classification is new or doesn't exist
+    """
+    for row in venues:
+        #Reclassify the the parent category 
+
+
+        #Transform category dictionary into a list
+        category_list = []
+        for i, item in enumerate(row.categories):
+            #print '~' * 50
+            #print item.category, i
+            #print '~' * 50
+            category_list.append(item.category) 
+
+        print "~" * 200
+        print "category list: ", category_list
+        print "venue name: ", row.name_tokens
+
+        new_parent_category_classification = classify_parent_category(category_list, row.name)
+        if(new_parent_category_classification != row.parent_category):
+            new_parent_category = new_parent_category_classification
+            sql = "update venue set parent_category = '%s' where id = %s" % (new_parent_category, row.id)
+            db.session.execute(sql)
+            db.session.commit()
+            print "--- Changed category for %s from %s to %s" % (row.name, row.parent_category, new_parent_category)
+    """
+
+
     return redirect(url_for('show_notes', username=session['username']))
 
+@app.route('/lp', methods=['GET'])
+def show_landing_page():
 
-
+    return render_template('lp.html')
 
 @app.route('/', methods=['GET'])
 def redirect_to_username_homepage():
 
     print '-' * 50
-    print "is hidden /: ", request.args.get('is_hidden')
     initialize_session_vars()
-
-    if not 'username' in session:
-        session['username'] = 'almostvindiesel'
-
     return redirect(url_for('show_notes', username=session['username']))
-    #return redirect(url_for('show_notes'))
-    #return redirect("/profile/" + session['username'])
+
+    """
+    if 'user_id' in session:
+        
+    else: 
+        initialize_session_vars()
+        return redirect(url_for('show_landing_page'))
+    """
+
 
 
 @app.route('/new', methods=['GET'])
@@ -1179,11 +1317,13 @@ def new_layout():
              inner join location l on l.id = v.location_id \
            where uv.user_id=%s and city is not null" % (session['page_user_id'])
     for key in session:
-        if key == 'country' or key == 'is_hidden' or key == 'city':
+        if key == 'country' or key == 'is_hidden':
             if session[key] != '':
                 parent_category_sql = parent_category_sql + " and %s='%s' " % (key, session[key])
     parent_category_sql = parent_category_sql + " order by parent_category asc"                
     parent_categories = db.session.execute(parent_category_sql)
+
+
 
 
     #User
@@ -1200,7 +1340,7 @@ def new_layout():
 
 
 
-    return render_template('index.html', venues=venues, pages=pages, pages_no_loc=pages_no_loc, \
+    return render_template('show_notes.html', venues=venues, pages=pages, pages_no_loc=pages_no_loc, \
                             cities=cities, countries=countries, \
                             parent_categories=parent_categories, user=page_user)
     #return dumps(locations_json)
@@ -1252,7 +1392,7 @@ def show_notes(username):
              inner join location l on l.id = v.location_id \
            where uv.user_id=%s and city is not null" % (session['page_user_id'])
     for key in session:
-        if key == 'country' or key == 'is_hidden' or key == 'city':
+        if key == 'country' or key == 'is_hidden':
             if session[key] != '':
                 parent_category_sql = parent_category_sql + " and %s='%s' " % (key, session[key])
     parent_category_sql = parent_category_sql + " order by parent_category asc"                
@@ -1273,7 +1413,7 @@ def show_notes(username):
 
 
 
-    return render_template('show_notes.html', venues=venues, pages=pages, pages_no_loc=pages_no_loc, \
+    return render_template('index.html', venues=venues, pages=pages, pages_no_loc=pages_no_loc, \
                             cities=cities, countries=countries, \
                             parent_categories=parent_categories, user=page_user)
     #return dumps(locations_json)
@@ -1283,9 +1423,23 @@ def initialize_session_vars():
 
     if request.args.get('zoom'):
         session['zoom'] = request.args.get('zoom')
+        print "--- Changed zoom to: ", request.args.get('zoom')
     if not ('zoom' in session):
         session['zoom'] = 5
     session['zoom_options'] = ['1', '3', '5','10','25','50']
+
+
+    session['user_rating_options'] = [0, 1, 2, 3, 4]
+    session['user_rating_display'] = ["fa fa-circle-o", "fa fa-thumb-tack", "fa fa-meh-o",  "fa fa-frown-o",  "fa fa-smile-o"]
+    if request.args.get('user_rating'):
+        if request.args.get('user_rating') == session['user_rating']:
+            session['user_rating'] = ''
+        else:
+            session['user_rating'] = request.args.get('user_rating')
+            print "--- Changed user_rating filter to: ", session['user_rating']
+    if  not ('user_rating' in session) or session['user_rating'] == 'reset' or session['user_rating'] == '':
+        session['user_rating'] = ''
+
 
     """
     The following statements process the location and category filters.
@@ -1335,15 +1489,18 @@ def initialize_session_vars():
             session['is_hidden'] = False
     elif 'is_hidden' not in session:
         session['is_hidden'] = ''
-    print "is hidden session after: ", session['is_hidden'] 
+    #print "is hidden session after: ", session['is_hidden'] 
 
     if request.args.get('parent_category'):
         session['parent_category'] = request.args.get('parent_category')
+        print "--- Changed parent_category filter to: ", session['parent_category']
     if  not ('parent_category' in session) or session['parent_category'] == 'reset' or session['parent_category'] == '':
         session['parent_category'] = ''
 
     if request.args.get('city'):
         session['city'] = request.args.get('city')
+        session['country'] = ''
+        print "--- Changed city filter to: ", session['city']
     if not 'city' in session or session['city'] == 'reset' or session['city'] == '':
         session['city'] = ''
     
