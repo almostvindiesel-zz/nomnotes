@@ -749,6 +749,7 @@ def show_venues(id):
 @app.route('/updatesequencekeys', methods=['GET'])
 def update_sequence_keys():
 
+
     all_tables = ['location','venue','venue_category','user_venue','note','page','user_page','page_note']
 
     for table in all_tables:
@@ -778,7 +779,7 @@ def create_table(table):
 
     except Exception as e:
         print "Exception ", e.message, e.args
-        msg = "Could not create table: %s" % (table)
+        msg = "ERROR. Could NOT create table: %s" % (table)
             
     return redirect(url_for('show_admin', msg = msg ))
 
@@ -798,7 +799,7 @@ def drop_table(table):
 
     except Exception as e:
         print "Error ", e.message, e.args
-        msg = "Could not drop table: %s" % (table)
+        msg = "ERROR. Could NOT drop table: %s" % (table)
         
     return redirect(url_for('show_admin', msg = msg ))
 
@@ -814,7 +815,7 @@ def show_admin():
               'UserVenue', 'Note', 'Page', 'PageNote', 'UserPage', 'UserImage', 'Zdummy' ]
 
     table_names = ['email_invite', 'user', 'location', 'venue', 'venue_category', \
-                   'user_venue', 'note', 'page', 'page_note', 'user_page', 'user_image', 'Zdummy']
+                   'user_venue', 'note', 'page', 'page_note', 'user_page', 'user_image', 'zdummy']
 
 
     return render_template('show_admin.html', table_classes=table_classes, table_names=table_names, msg=msg)
