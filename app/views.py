@@ -45,7 +45,7 @@ from models import UserVenue, UserPage, Page, PageNote, UserImage, EmailInvite, 
 
 db_adapter = SQLAlchemyAdapter(db, User)        # Register the User model
 user_manager = UserManager(db_adapter, app)     # Initialize Flask-User
-mail = Mail(app)  
+#mail = Mail(app)  
 
 
 @app.route('/addemailinvite', methods=['POST'])
