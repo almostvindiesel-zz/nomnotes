@@ -1,0 +1,1297 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <!-- Meta, title, CSS, favicons, etc. -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta id="hostname" data-name="{{session.hostname}}" >
+
+
+    <title>It Lyst </title> 
+
+
+    <!-- Bootstrap -->
+    <!--<link href="../vendors/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet">-->
+    <link href="/static/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Font Awesome -->
+    <!--<link href="../vendors/font-awesome/css/font-awesome.min.css" rel="stylesheet">-->
+    <link href="/static/css/font-awesome.min.css" rel="stylesheet">
+
+    <!-- NProgress -->
+    <!--<link href="../vendors/nprogress/nprogress.css" rel="stylesheet">-->
+    <link href="/static/css/nprogress.css" rel="stylesheet">
+
+    <!-- Custom Theme Style -->
+    <!--<link href="../build/css/custom.min.css" rel="stylesheet">-->
+    <link href="/static/css/custom.min.css" rel="stylesheet">
+
+    <link href="/static/css/style.css" rel="stylesheet">
+
+
+
+
+  </head>
+
+  <body class="nav-md">
+    <div class="container body">
+      <div class="main_container">
+        <div class="col-md-3 left_col">
+          <div class="left_col scroll-view">
+            <div class="navbar nav_title" style="border: 0;">
+              <a href="/" class="site_title"> &nbsp; <img src='/static/img/itlyst-fork-logo.png' width=30><!--<i class="fa fa-cutlery"></i>-->
+                <span style="letter-spacing: 2px; font-weight: 900;"> itlyst</span></a>
+            </div>
+
+            <div class="clearfix"></div>
+
+            <!-- menu profile quick info -->
+            <!--
+            <div class="profile">
+              <div class="profile_pic">
+                <img src="images/img.jpg" alt="..." class="img-circle profile_img">
+              </div>
+              <div class="profile_info">
+                <span>Welcome,</span>
+                <h2>John Doe</h2>
+              </div>
+            </div>
+            -->
+            <!-- /menu profile quick info -->
+
+            <br />
+
+
+
+            <!-- sidebar menu -->
+            <div id="sidebar-menu" class="main_menu_side hidden-print main_menu">
+              <div class="menu_section">
+                <h3>Filters</h3>
+                <ul class="nav side-menu">
+
+                  <!-- City filter -->
+                  <li id='citysearchmenu' c><a><i class="fa fa-bank" ></i> City <span class="fa fa-chevron-down"></span></a>
+                    <ul class="nav child_menu">
+                      <li>
+                        {% if session['city'] %}
+                          <div style="height: 65px;" id='selectedcitydiv'>
+                            <button type="button" class="btn btn-default" id='selectedcity'>{{ session['city'] }}<i class="fa fa-remove" ></i></button><br><br>
+                          </div>
+                          {% set inputdisplay = 'none' %}
+                        {% else %}
+                          {% set inputdisplay = 'block' %}
+                        {% endif %}
+                          <div class="input-group" id='cityinputdiv' style="display: {{inputdisplay}}; height: 130px;">
+                            <form action="/" method="get" id='citysearchform'>
+                              <input type="text" class="form-control typeahead" placeholder="City, eg Rome" id='citysearch' name='city'>
+                            </form>
+                          </div>
+                      </li>
+                    </ul>
+                  </li>
+                  <li id='countrysearchmenu'><a><i class="fa fa-flag"></i> Country <span class="fa fa-chevron-down"></span></a>
+                    <ul class="nav child_menu">
+                      <li>
+                        {% if session['country'] %}
+                          <div style="height: 65px;" id='selectedcountrydiv'>
+                            <button type="button" class="btn btn-default" id='selectedcountry'>{{ session['country'] }}<i class="fa fa-trash-o" ></i></button><br><br>
+                          </div>
+                          {% set inputdisplay = 'none' %}
+                        {% else %}
+                          {% set inputdisplay = 'block' %}
+                        {% endif %}
+                          <div class="input-group" id='countryinputdiv' style="display: {{inputdisplay}}; height: 130px;">
+                            <form action="/" method="get" id='countrysearchform'>
+                              <input type="text" class="form-control typeahead" placeholder="Country, eg United States" id='countrysearch' name='country'>
+                            </form>
+                          </div>
+                      </li>
+                    </ul>
+                  </li>      
+
+                  <li><a><i class="fa fa-coffee"></i> Category <span class="fa fa-chevron-down"></span></a>
+                    <ul class="nav child_menu">
+                      <li>
+                       <form action="/" method="get" id='parentcategoryinputform'>
+                          <div id="parentcategoryselectordiv" class="btn-group btn-group-sm" data-toggle="buttons" height: 130px;>
+                            {% for item in parent_categories %}
+                             {% if session['parent_category'] == item.parent_category %}
+                                {% set label = 'active' %}
+                                {% set checked = 'checked' %}
+                              {% else %}
+                                {% set label = '' %}
+                                {% set checked = '' %}
+                              {% endif %}
+                              <label class="btn btn-default {{ label }}" data-toggle-class="btn-primary" data-toggle-passive-class="btn-default">
+                                  <input type="radio" name="parent_category" value="{{item.parent_category}}" {{ label }} onchange="this.form.submit();">
+                                  {{ item.parent_category }}
+                              </label>
+                            {% endfor %}
+                            <label class="btn btn-default" data-toggle-class="btn-primary" data-toggle-passive-class="btn-default">
+                                <input type="radio" name="parent_category" value="reset" onchange="this.form.submit();">
+                                all
+                            </label>
+                          </div
+                        </form>
+                      </li>
+                    </ul>
+                  </li>
+
+                  <li><a><i class="fa fa-search-plus"></i> Zoom (mi) <span class="fa fa-chevron-down"></span></a>
+                    <ul class="nav child_menu">
+                      <li>
+                        <form action="/" method="get" id='zoominputform'>
+                          <div id="zoomselectordiv" class="btn-group btn-group-sm" data-toggle="buttons" height: 130px; >
+                            {% for zoom_option in session.zoom_options %}
+                             {% if session['zoom'] == zoom_option %}
+                                {% set label = 'active' %}
+                                {% set checked = 'checked' %}
+                              {% else %}
+                                {% set label = '' %}
+                                {% set checked = '' %}
+                              {% endif %}
+                              <label class="btn btn-default {{ label }}" data-toggle-class="btn-primary" data-toggle-passive-class="btn-default">
+                                  <input type="radio" name="zoom" value="{{zoom_option}}" {{ label }} onchange="this.form.submit();">
+                                  {{ zoom_option }}
+                              </label>
+                            {% endfor %}
+                              <br>&nbsp;<br>&nbsp;
+                          </div
+                        </form>
+                      </li>
+                    </ul>
+                  </li>
+
+                  <!--
+                  <li><a><i class="fa fa-eye"></i> Visibility <span class="fa fa-chevron-down"></span></a>
+                    <ul class="nav child_menu">
+                      <li>
+                        <form action="/" method="get" id='visibilityinputform'>
+                          <div id="visibilityselectordiv" class="btn-group btn-group-sm" data-toggle="buttons" height: 130px;>
+                             {% if session['is_hidden'] == False %}
+                                {% set is_hidden_true = '' %}
+                                {% set is_hidden_false = 'active' %}
+                              {% else %}
+                                {% set is_hidden_true = 'active' %}
+                                {% set is_hidden_false = '' %}
+                              {% endif %}
+                              <label class="btn btn-default {{ label }}" data-toggle-class="btn-primary" data-toggle-passive-class="btn-default">
+                                  <input type="radio" name="is_hidden" value="true" {{ is_hidden_true }} onchange="this.form.submit();">
+                                  hide
+                              </label>
+                              <label class="btn btn-default {{ label }}" data-toggle-class="btn-primary" data-toggle-passive-class="btn-default">
+                                  <input type="radio" name="is_hidden" value="false" {{ is_hidden_false }} onchange="this.form.submit();">
+                                  show
+                              </label>
+                              <br>&nbsp;<br>&nbsp;
+                          </div
+                        </form>
+                      </li>
+                    </ul>
+                  </li>
+                -->
+
+                
+
+                  <li><a><i class="fa fa-star-half-o"></i> Rating <span class="fa fa-chevron-down"></span></a>
+                    <ul class="nav child_menu">
+                      <li>
+                       <form action="/" method="get" id='userratinginputform'>
+                          <div id="userratingselectordiv" class="btn-group btn-group-sm" data-toggle="buttons" height: 130px;>
+                            {% for user_rating_display in session.user_rating_display %}
+                             {% if session.user_rating|string() == loop.index0|string() %}
+                                {% set label = 'active' %}
+
+                              {% else %}
+                                {% set label = '' %}
+                              {% endif %}
+                              <label class="btn btn-default {{ label }}" data-toggle-class="btn-primary" data-toggle-passive-class="btn-default" style="padding: 5px 5px">
+                                  <input type="radio" name="user_rating" value="{{ loop.index0 }}"  onchange="this.form.submit();" >
+                                    <i class='{{ session.user_rating_display[loop.index0] | safe }} fa-userratingdisplay'></i>
+                              </label>
+                            {% endfor %}
+                              <br>&nbsp;<br>&nbsp;
+                          </div
+                        </form>
+                      </li>
+                    </ul>
+                  </li>
+
+                </ul>
+              </div>
+              <!--
+              <div class="menu_section">
+                <h3>Live On</h3>                
+                <ul class="nav side-menu">
+                  <li><a><i class="fa fa-bug"></i> Additional Pages <span class="fa fa-chevron-down"></span></a>
+                    <ul class="nav child_menu">
+                      <li><a href="e_commerce.html">E-commerce</a></li>
+                      <li><a href="projects.html">Projects</a></li>
+                      <li><a href="project_detail.html">Project Detail</a></li>
+                      <li><a href="contacts.html">Contacts</a></li>
+                      <li><a href="profile.html">Profile</a></li>
+                    </ul>
+                  </li>
+                  <li><a><i class="fa fa-windows"></i> Extras <span class="fa fa-chevron-down"></span></a>
+                    <ul class="nav child_menu">
+                      <li><a href="page_403.html">403 Error</a></li>
+                      <li><a href="page_404.html">404 Error</a></li>
+                      <li><a href="page_500.html">500 Error</a></li>
+                      <li><a href="plain_page.html">Plain Page</a></li>
+                      <li><a href="login.html">Login Page</a></li>
+                      <li><a href="pricing_tables.html">Pricing Tables</a></li>
+                    </ul>
+                  </li>
+                  <li><a><i class="fa fa-sitemap"></i> Multilevel Menu <span class="fa fa-chevron-down"></span></a>
+                    <ul class="nav child_menu">
+                        <li><a href="#level1_1">Level One</a>
+                        <li><a>Level One<span class="fa fa-chevron-down"></span></a>
+                          <ul class="nav child_menu">
+                            <li class="sub_menu"><a href="level2.html">Level Two</a>
+                            </li>
+                            <li><a href="#level2_1">Level Two</a>
+                            </li>
+                            <li><a href="#level2_2">Level Two</a>
+                            </li>
+                          </ul>
+                        </li>
+                        <li><a href="#level1_2">Level One</a>
+                        </li>
+                    </ul>
+                  </li>                  
+                  <li><a href="javascript:void(0)"><i class="fa fa-laptop"></i> Landing Page <span class="label label-success pull-right">Coming Soon</span></a></li>
+                </ul>
+              </div>
+              -->
+
+            </div>
+            <!-- /sidebar menu -->
+
+            <!-- /menu footer buttons -->
+            <div class="sidebar-footer hidden-small">
+              <!--
+              <a data-toggle="tooltip" data-placement="top" title="Settings">
+                <span class="glyphicon glyphicon-cog" aria-hidden="true"></span>
+              </a>
+              <a data-toggle="tooltip" data-placement="top" title="FullScreen">
+                <span class="glyphicon glyphicon-fullscreen" aria-hidden="true"></span>
+              </a>
+              <a data-toggle="tooltip" data-placement="top" title="Lock">
+                <span class="glyphicon glyphicon-eye-close" aria-hidden="true"></span>
+              </a>
+              <a data-toggle="tooltip" data-placement="top" title="Logout">
+                <span class="glyphicon glyphicon-off" aria-hidden="true"></span>
+              </a>
+              -->
+            </div>
+            <!-- /menu footer buttons -->
+          </div>
+        </div>
+
+        <!-- top navigation -->
+        <div class="top_nav">
+          <div class="nav_menu">
+            <nav>
+              <div class="nav toggle">
+                <a id="menu_toggle"><i class="fa fa-bars"></i></a>
+              </div>
+
+              <ul class="nav navbar-nav navbar-right">
+                {% if session.can_edit == 1 %}
+                  <li class="">
+                    <a href="javascript:;" class="user-profile dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
+                      <!--<img src="images/img.jpg" alt="">-->
+                      {{ user.username }}
+                      <span class=" fa fa-angle-down"></span>
+                    </a>
+                    <ul class="dropdown-menu dropdown-usermenu pull-right">
+                      <li><a href="javascript:;"> Profile</a></li>
+                      <li>
+                        <a href="javascript:;">
+                          <!--<span class="badge bg-red pull-right">50%</span>-->
+                          <span>Settings</span>
+                        </a>
+                      </li>
+                      <li><a href="javascript:;">Help</a></li>
+                      <li><a href="login.html"><i class="fa fa-sign-out pull-right"></i> Log Out</a></li>
+                    </ul>
+                  </li>
+
+
+                  <li role="presentation" class="dropdown">
+                    <a href="javascript:;" class="dropdown-toggle info-number" data-toggle="dropdown" aria-expanded="false">
+                      <i class="fa fa-bell-o"></i>
+                      <span class="badge bg-green">{{pages_no_loc|length}}</span>
+                    </a>
+                    
+                      <!--Hello, <b>{{ user.username }}</b> -->
+                      <ul id="menu1" class="dropdown-menu list-unstyled msg_list" role="menu">
+                        {% for datum in pages_no_loc %}
+                        <li>
+                          
+                            <!--<span class="image"><img src="images/img.jpg" alt="Profile Image" /></span>-->
+                            <span>
+                              <!--<span>John Smith</span>-->
+                              <!--<span class="time">3 mins ago</span>-->
+                            </span>
+                            <span class="message">
+
+                              <a href={{ datum.source_url }} target='_blank' >{{ datum.source_title }}</a>
+                              <br> &nbsp; We couldn't detect a location. Add one?
+                              {% if session.can_edit %}
+                                <div id="noloclystdiv{{ datum.id }}">                
+                                  <!--<button id='addCity{{ datum.id }}' onclick=showCitySearchTypeahead({{ datum.id }})>Add City</button>-->
+                                  &nbsp; <input class='typeahead' id='typeaheadcity' type='text' placeholder='Add a city to page'>
+                                  <button class='typeahead' onclick='updatePageLocation({{ datum.id }})'>Assign Location</button>
+                                </div>
+                              {% endif %}
+                            </span>
+
+                        </li>
+                        {% endfor %}
+                      </ul>
+                  </li>
+                {% else %}
+                <li class="">
+                  <a href=/user/sign-in>Login</a>
+                </li>
+                {% endif %}
+
+              </ul>
+            </nav>
+          </div>
+        </div>
+        <!-- /top navigation -->
+
+        <!-- page content -->
+        <div class="right_col" role="main">
+          <div class="">
+            <!--
+            <div class="page-title">
+              <div class="title_left">
+                <h3>Form Buttons</h3>
+              </div>
+
+              <div class="title_right">
+                <div class="col-md-5 col-sm-5 col-xs-12 form-group pull-right top_search">
+                  <div class="input-group">
+                    <input type="text" class="form-control" placeholder="Search for...">
+                    <span class="input-group-btn">
+                      <button class="btn btn-default" type="button">Go!</button>
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            -->
+
+            <div class="clearfix"></div>
+
+            <div class="row">
+              <div class="col-md-8">
+
+                <div class="x_panel">
+                  <div class="x_title">
+                  
+
+
+                    <h2>Venue Lyst </h2>
+                    <ul class="nav navbar-right panel_toolbox">
+                      <li><a class="collapse-link"><i class="fa fa-chevron-up"></i></a>
+                      </li>
+                    </ul>
+                    <div class="clearfix"></div>
+                  </div>
+                  <div class="x_content">
+
+                    <!-- List of Coffee Places -->
+                      <ul class='venuelistsul'>
+                      {% set venue_nbr = 0 %}
+                      {% for datum in venues %}
+
+                        <div>
+                        
+                        <li class="dropdown">
+                          <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button">
+                            <i class='{{ session.user_rating_display[datum.user_rating ] | safe }} fa-userratingdisplay'></i>
+                          </a> 
+                          {% if session.can_edit == 1 %}
+                          <ul class="dropdown-menu" role="menu">
+                            {% for user_rating_display in session.user_rating_display %}
+                              <a href='/ratevenue/id/{{ datum.id }}/{{loop.index0}}'><i class='{{user_rating_display | safe}} fa-userratingdisplay'></i> </a>
+                            {% endfor %}
+                            </li>
+                          </ul>
+                          {% endif %}
+                        <button type='button' class='venue-click hidden-xs' data-nbr={{venue_nbr}}>{{venue_nbr + 1}}. {{ datum.name }}</button>
+                        <button type='button' class='venue-click visible-xs' data-nbr={{venue_nbr}}>{{venue_nbr + 1}}. {{ datum.name | truncate(30)}}</button>
+                        {% if datum.foursquare_rating %}
+                          {{ datum.foursquare_rating }}, {{ datum.foursquare_reviews }} tips
+                        {% elif datum.tripadvisor_rating %}
+                          {{ (datum.tripadvisor_rating * 2) }}, {{ datum.tripadvisor_reviews }} tips
+                        {% elif datum.yelp_rating %}
+                          {{ datum.yelp_rating * 2 }}, {{ datum.yelp_reviews }} tips
+                        {% endif %}
+
+                        <a target='_blank' href='http://www.google.com/maps/search/{{ datum.name }}/@{{ datum.latitude }},{{ datum.longitude }}/14z'>
+                          <img class=logos src=/static/img/gmaps-icon.png>
+                        </a>
+                          
+                        {% if datum.foursquare_url %}
+                          <a target='_blank' href='{{ datum.foursquare_url }}'><i class='fa fa-foursquare'></i></a>
+                        {% endif %}
+                        {% if datum.tripadvisor_url %}
+                          <a target='_blank' href='{{ datum.tripadvisor_url }}'><i class='fa fa-tripadvisor'></i></a>
+                        {% endif %}
+                        {% if datum.yelp_url %}
+                          <a target='_blank' href='{{ datum.yelp_url }}'><i class='fa fa-yelp'></i></a>
+                        {% endif %}
+                        <!--<a target='_blank' href='http://google.com/maps?q={{ datum.latitude }},{{ datum.longitude }}'>
+                          <img class=logos src=/static/img/gmaps-icon.png>
+                        </a>-->
+                        
+                        {% if session.can_edit %}
+                          <!--<a class=hidesymbol href='/hidevenue/id/{{ datum.id }}'><i class='fa fa-eye-slash'></i></a>-->
+                          <a class=deletesymbol href='/deletevenue/id/{{ datum.id }}'><i class='fa fa-trash-o'></i></a>
+                          <a class=addsymbol onclick=addNoteToVenue({{ datum.id }})><i class='fa fa-plus-square-o'></i></a>
+                        {% endif %}
+
+                        </li>
+                        <ul id='venue{{ datum.id }}'>
+                        {% for note in datum.notes %}
+                            <li id='v{{datum.id}}_n{{note.id}}' venue_id='{{ datum.id }}' note_id='{{ note.id }}' class='venuenote'  
+                            onmouseover="emphasizeNote(this)" onmouseout="deemphasizeNote(this)" data-nbr={{venue_nbr}}>
+                              {{ note.note | safe }}
+                              {% if session.can_edit %}
+                                <a class=deletesymbol href='/deletenote/id/{{ note.id }}'><i class='fa fa-trash-o'></i></a>
+                              {% endif %}
+                            </li>
+                        {% endfor %}
+
+                        
+                        {% for image in datum.images %}
+                          <span class=image>
+                            <img src={{ image.image_url  }} class='venueimage imgresponsive' id='v{{datum.id}}_i{{image.id}}'><span class=pageimage>{% if session.can_edit %}<a class=deletesymbolimage href='/deleteimage/id/{{ image.id }}' ><i class='fa fa-trash-o'></i></a></span>{% endif %}
+                           </span>
+                           &nbsp;
+                        {% endfor %}
+                        
+
+                         </ul>
+                        {% set venue_nbr = venue_nbr + 1 %}
+                      {% endfor %}
+                      
+                      <!--
+                      {% for datum in venues %}
+                        {% for image in datum.images %}
+                          <span class=image>
+                            <img src={{ image.image_url  }} class=venueimage id='v{{datum.id}}_i{{image.id}}'><span class=pageimage>{% if session.can_edit %}<a class=deletesymbolimage href='/deleteimage/id/{{ image.id }}' >x</a></span>{% endif %}
+                           </span>
+                           &nbsp;
+                        {% endfor %}
+                      {% endfor %}
+                    -->
+
+                      </ul>
+                  </div>
+                </div>
+
+
+                {% if pages  %}
+                <div class="x_panel">
+                  <div class="x_title">
+                    <h2>General Lysts</h2>
+                    <ul class="nav navbar-right panel_toolbox">
+                      <li></li>
+                      <li></li>
+                      <li><a class="collapse-link"><i class="fa fa-chevron-up"></i></a>
+                      </li>
+                    </ul>
+                    <div class="clearfix"></div>
+                  </div>
+                  <div class="x_content">
+
+                    <!-- Pages -->
+                    <!-- !!! Not sure hwo to see -->
+                    
+                      <ul class='pagelistsul'>
+                      {% set page_nbr = 0 %}
+                      {% for datum in pages %}
+                        
+                        <li class="dropdown">
+                          <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button">
+                            <i class='{{ session.user_rating_display[datum.user_rating ] | safe }} fa-userratingdisplay'></i>
+                          </a> 
+                          {% if session.can_edit == 1 %}
+                          <ul class="dropdown-menu" role="menu">
+                            {% for user_rating_display in session.user_rating_display %}
+                              <a href='/ratepage/id/{{ datum.id }}/{{loop.index0}}'><i class='{{user_rating_display | safe}} fa-userratingdisplay'></i> </a>
+                            {% endfor %}
+                            </li>
+                          </ul>
+                          {% endif %}
+                        <a type='button' class='page-click' data-nbr={{page_nbr}} href={{ datum.source_url }} target='_blank' >{{venue_nbr + 1}}. {{ datum.source_title }}</a>
+
+                        {% if session.can_edit %}
+                         <!-- <a class=hidesymbol href='/hidepage/id/{{ datum.id }}'><i class='fa fa-eye-slash'></i></a>-->
+                          <a class=deletesymbol href='/deletepage/id/{{ datum.id }}'><i class='fa fa-trash-o'></i></a>
+                          <a class=addsymbol onclick=addPageNoteToPage({{ datum.id }})><i class='fa fa-plus-square-o'></i></a>
+                        {% endif %}
+
+                        </li>
+                        <ul id='page{{ datum.id }}'>
+                        {% for note in datum.notes %}
+                            <li id='p{{datum.id}}_n{{note.id}}' page_id='{{ datum.id }}' note_id='{{ note.id }}' class='pagenote'  onmouseover="emphasizeNote(this)" onmouseout="deemphasizeNote(this)" >
+                              {{ note.note | safe }}
+                              {% if session.can_edit %}
+                                <a class=deletesymbol href='/deletepagenote/id/{{ note.id }}' ><i class='fa fa-trash-o'></i></a>
+                              {% endif %}
+                            </li>
+                        {% endfor %}
+
+                        {% for image in datum.images %}
+                        <span class=image>
+                            <img src={{ image.image_url  }} class=pageimage id='p{{datum.id}}_i{{image.id}}'><span class=pageimage>{% if session.can_edit %}<a class=deletesymbolimage href='/deleteimage/id/{{ image.id }}' ><i class='fa fa-trash-o'></i></a></span>{% endif %}
+                        </span>
+                        &nbsp;
+                        {% endfor %}
+
+                         </ul>
+                        {% set page_nbr = page_nbr + 1 %}
+                      {% endfor %}
+                      </ul>
+                  </div>
+                </div>
+                {% endif %}
+              </div>
+
+              <div class="col-md-4" >
+                <div class="x_panel" style="position: fixed; width: 335px;" id='gmapxpanel'> <!--s-->
+                  <div class="x_title" >
+                    <h2>Venue Map</h2>
+                    <ul class="nav navbar-right panel_toolbox">
+                      <li><a class="collapse-link"><i class="fa fa-chevron-up"></i></a>
+                      </li>
+                    </ul>
+                    <div class="clearfix"></div>
+                  </div>
+                  <div class="x_content" id='googmapparent'>
+                    <div id='googmap'>
+                        <script async defer 
+                            src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDoemInMQhCNVqELI9R58ass8f7MnzvjPM&libraries=visualization&callback=initialize">
+                        </script>
+                    </div>
+                    <div>
+                      &nbsp;<br>
+                      &nbsp;<br>
+                      &nbsp;<br>
+                      &nbsp;<br>
+                      &nbsp;<br>
+                  </div>
+                </div>
+              <div>
+            </div>
+          </div>
+        </div>
+        <!-- /page content -->
+      </div>
+
+
+        <!-- footer content -->
+      <div class=class="col-md-4 col-sm-offset-2">
+
+        <footer>
+          <div class="pull-left">
+               <a href=/lp>It Lyst</a> | 
+               Powered by 
+               <a target='_blank' href=http://foursquare.com><i class='fa fa-foursquare'></i></a> and 
+               <a target='_blank' href=http://tripadvisor.com><i class='fa fa-tripadvisor'></i></a> and
+               <a target='_blank' href=http://yelp.com><i class='fa fa-yelp'></i></a>
+          </div>
+          <!--div class="clearfix"></div>-->
+        </footer>
+      </div>
+    </div>
+
+    <!-- jQuery -->
+    <!--<script src="../vendors/jquery/dist/jquery.min.js"></script>-->
+    <script src="/static/js/jquery-2.2.4.min.js"></script>
+
+    <script src="/static/js/typeahead.bundle.js"></script>
+
+    <!-- Bootstrap -->
+    <!--<script src="../vendors/bootstrap/dist/js/bootstrap.min.js"></script>-->
+    <script src="/static/js/bootstrap.min.js"></script>
+
+    <!-- FastClick -->
+    <!--<script src="../vendors/fastclick/lib/fastclick.js"></script>-->
+    <script src="/static/js/fastclick.js"></script>
+
+    <!-- Custom Theme Scripts -->
+    <!--<script src="../build/js/custom.min.js"></script>-->
+    <script src="/static/js/custom.min.js"></script>
+
+  </body>
+
+<script>
+
+
+
+
+
+  var map;
+  var markers = new Array();
+  var infowindow;
+
+  // Clickable list http://marcgrabanski.com/jquery-google-maps-tutorial-basics/
+  function initialize(markers) {
+    map = new google.maps.Map(document.getElementById('googmap'), {
+      disableDefaultUI: true,
+      scrollwheel: false
+    });
+    infowindow = new google.maps.InfoWindow();
+
+    // Create a <script> tag and set the USGS URL as the source.
+
+    var script = document.createElement('script');
+    var hostname  = $('#hostname').data();
+    script.src = hostname.name + '/venues?format=js';
+          
+    document.getElementsByTagName('head')[0].appendChild(script);
+  }
+
+  // Loop through the results array and place a marker for each set of coordinates.
+  window.gmapfeed = function(results) {
+
+      //var infowindow = new google.maps.InfoWindow();
+      var bounds = new google.maps.LatLngBounds();
+
+      for (var i = 0; i < results.markers.length; i++) {
+        var latLng = new google.maps.LatLng(results.markers[i].latitude,results.markers[i].longitude);
+        var marker = new google.maps.Marker({
+          position: latLng,
+          label: (i+1).toString(),
+          map: map
+        });
+        markers[i] = marker;
+        bounds.extend(marker.position);
+
+        // Show Title on Click
+        google.maps.event.addListener(marker, 'click', (function (marker, i) {
+          return function () {
+              var popUpData = "<b>" + results.markers[i].name + "</b><br>" 
+              //+ results.markers[i].rating + " " + results.markers[i].ratingOutOf + ", " + results.markers[i].reviews + " reviews<br>" 
+              //+ "<a target='_blank' href='http://www.google.com/maps/search/" + results.markers[i].name 
+              //+ "/@" + results.markers[i].page_latitude + "," + results.markers[i].page_longitude +"/14z'>view in gmaps</a>";
+              infowindow.setContent(popUpData);
+              infowindow.open(map, marker);
+              //var div = document.createElement("div");
+              //div.innerHTML = "LOADING 1234 LOADING 1234 LOADING 1234 LOADING 1234 ";
+              //document.body.appendChild(div);
+          }
+        })(marker, i));
+    }
+
+    var listener = google.maps.event.addListener(map, 'idle', function() { 
+      if (map.getZoom() > 16) map.setZoom(11); 
+      google.maps.event.removeListener(listener); 
+    });
+
+    //Center Map on Collection of Locations
+    map.fitBounds(bounds);
+  }
+
+
+<!-- Trigger Click on Google Maps -->
+
+$(document).click(function(event) {
+  $(document).ready(function(){
+      $(".venue-click").click(function(){
+          i = $(this).data('nbr')
+          //console.log(markers[i]);
+          google.maps.event.trigger(markers[i], 'click');
+      });
+  });
+
+  //Google Maps Div Scrolls with user scroll
+  //!!! removes map on mobile
+  // window.innerWidth
+  // $("#gmapxpanel").remove();
+
+  $(window).resize(function() {
+  //resize just happened, pixels changed
+    if (window.innerWidth < 1200) {
+      $("#gmapxpanel").hide();
+    } else {
+      $("#gmapxpanel").show();
+    }
+  });
+
+  $(window).scroll(function(){
+    if (window.innerWidth < 1200) {
+      $("#gmapxpanel").hide();
+    }
+
+     $("#gmapxpanel").css("top",Math.max(0,70-$(this).scrollTop()));
+      //console.log(screen.width);
+  });
+});
+</script>
+
+<script>
+
+
+
+//Left Nav Bar City Search
+//-----------------------------------------------------------------
+
+    //Initialize Typeahead
+    var citySearch = new Bloodhound({
+      datumTokenizer: Bloodhound.tokenizers.obj.whitespace('city'),
+      queryTokenizer: Bloodhound.tokenizers.whitespace,
+      prefetch: 'http://localhost:5000/cities',
+      remote: {
+        url: 'http://localhost:5000/cities?q=%QUERY',
+        wildcard: '%QUERY'
+      }
+    });
+    citySearch.initialize();
+
+    $('#citysearch').typeahead({
+        //hint: true,
+        highlight: true,
+        minLength: 0
+     }, {
+        name: 'city-search',
+        displayKey: 'city',
+        source: citySearch.ttAdapter()
+     }).bind("typeahead:selected", function(obj, datum, name) {
+        $(this).data("location_id", datum.id);
+     });
+
+    $('#citysearchmenu').click(function() {
+        $('#citysearch').focus();
+    });
+
+    $('#citysearch').bind("typeahead:selected", function () {
+        console.log("got here");
+        $("#citysearchform").submit();
+    });
+
+    $('#selectedcitydiv').click(function() {
+         $('#cityinputdiv').css("display", "block");
+         $("#selectedcitydiv").css("display", "none");
+    });
+
+//Left Nav Bar Country Search
+//-----------------------------------------------------------------
+
+
+    //Initialize Typeahead
+    var countrySearch = new Bloodhound({
+      datumTokenizer: Bloodhound.tokenizers.obj.whitespace('country'),
+      queryTokenizer: Bloodhound.tokenizers.whitespace,
+      prefetch: 'http://localhost:5000/countries',
+      remote: {
+        url: 'http://localhost:5000/countries?q=%QUERY',
+        wildcard: '%QUERY'
+      }
+    });
+    countrySearch.initialize();
+
+    $('#countrysearch').typeahead({
+        //hint: true,
+        highlight: true,
+        minLength: 0
+     }, {
+        name: 'country-search',
+        displayKey: 'country',
+        source: countrySearch.ttAdapter()
+     }).bind("typeahead:selected", function(obj, datum, name) {
+        $(this).data("location_id", datum.id);
+     });
+
+    $('#countrysearchmenu').click(function() {
+         $('#countrysearch').focus();
+    });
+
+    $('#countrysearch').bind("typeahead:selected", function () {
+        $("#countrysearchform").submit();
+    });
+
+    $('#selectedcountrydiv').click(function() {
+         $('#countryinputdiv').css("display", "block");
+         $("#selectedcountrydiv").css("display", "none");
+    });
+
+// Zoom
+//-----------------------------------------------------------------
+
+    
+          /*
+  $(document).ready(function(){
+    $(".parentcategoryinput").click(function(){
+        $('#parentcategoryinputform').submit();
+          });
+      });
+*/
+
+</script>
+<script>
+/*
+  $(document).ready(function() { 
+    $('input.parentcategoryinput[name=parent_category]').change(function(){
+        $('#parentcategoryinputform').submit();
+    });
+  });
+
+  $(document).ready(function() { 
+    $('input[name=is_hidden]').change(function(){
+        $('#visibilityinputform').submit();
+    });
+  });
+
+  $(document).ready(function() { 
+    $('input.zoominput[name=zoom]').change(function(){
+        $('#zoominputform').submit();
+     });
+  });*/
+/*
+  $('input[type=radio]').on('change', function() {
+    console.log((this).closest("form"))
+    //$(this).closest("form").submit();
+  });
+*/
+
+ 
+
+// City 
+/*
+    var i = document.createElement("input");
+    i.className = 'typeahead';
+    i.id = 'typeaheadcity'
+    i.setAttribute('type',"text");
+    i.setAttribute('placeholder',"Add a city to Page");
+
+    var b = document.createElement("button");
+    b.innerHTML = 'Update'
+    b.className = 'typeahead';
+    b.setAttribute('onclick',"updatePageLocation(" + page_id + ")");
+
+    $( '#noloclystdiv' + page_id ).append(i);
+    $( '#noloclystdiv' + page_id ).append(b);
+    $( "#addCity" + page_id ).remove();
+*/
+
+    //Initialize Typeahead
+    var cityAssigner = new Bloodhound({
+      datumTokenizer: Bloodhound.tokenizers.obj.whitespace('city'),
+      queryTokenizer: Bloodhound.tokenizers.whitespace,
+      prefetch: 'http://localhost:5000/cities',
+      remote: {
+        url: 'http://localhost:5000/cities?q=%QUERY',
+        wildcard: '%QUERY'
+      }
+    });
+    cityAssigner.initialize();
+
+    $('#typeaheadcity').typeahead({
+        //hint: true,
+        highlight: true,
+        minLength: 2
+     }, {
+        name: 'city-search',
+        displayKey: 'city',
+        source: cityAssigner.ttAdapter()
+     }).bind("typeahead:selected", function(obj, datum, name) {
+        $(this).data("location_id", datum.id);
+     });
+    //};
+
+    //setTimeout("$('#typeaheadcity').focus();", 250)
+</script>
+
+    <!-- Enable the Showing/Hiding, Staring/Unstarring, Adding/Removing/Editing of Venues and their Notes -->
+    <script>
+
+      function addNoteToVenue(venue_id) {
+        var form = createAddNoteElement(venue_id);
+        $('#venue' + venue_id.toString()).append(form);
+
+        var new_note_input = document.getElementById ( 'newnoteforvenue' + venue_id.toString() );
+        console.log(new_note_input);
+        new_note_input.focus();
+        new_note_input.select();
+      }
+
+
+      function createAddNoteElement(venue_id) {
+
+        var e = document.createElement("li");
+        e.className = 'newnoteforvenueform';
+        e.id = 'newnoteforvenueform' + venue_id;
+        e.setAttribute('venue_id',venue_id);
+
+        var i = document.createElement("textarea");
+        i.className = 'newnotetext';
+        i.id = 'newnoteforvenue' + venue_id
+        i.setAttribute('onblur',"submitNote("+venue_id+")");
+
+        e.appendChild(i); 
+
+        return e;
+
+      }
+
+      // !!! Should switch to a listener rather than inline handler
+      function editNote(element) {
+
+        var venue_id = element.getAttribute('venue_id')
+        var note_id = element.getAttribute('note_id')
+        var note = element.innerText;
+        note = note.substring(0, note.length - 1);  //Current code includes 'x'--this strips it from the form. 
+
+        var i = document.createElement("textarea");
+        console.log("element id: " + element.id);
+
+        i.className = 'editnotetext';
+        i.id = 'editnoteforvenue' + venue_id;
+        i.setAttribute('note_id', note_id);
+        i.setAttribute('venue_id', venue_id);
+        i.setAttribute('onblur',"submitEditedNote("+venue_id+")");
+        i.value = note;
+        element.innerText = '';
+
+        element.appendChild(i);
+        i.focus();
+        //i.select();
+      }
+
+
+      /* !!! pass the element, not just the id
+         Submits a venue note that was added by the end user in the UI
+      */
+
+      function updatePageLocation(page_id) {
+
+        location_id  = $("#typeaheadcity").data("location_id")
+
+        if (typeof location_id !== 'undefined') {
+          url = '/updatepagelocation';
+
+          $.post(
+              url,
+              {page_id : page_id, 
+               location_id : location_id,
+              },
+              function(data, textStatus, jqXHR) {
+
+                window.location = "/";
+                //alert(data);
+                //completed_new_note = "<li>"+decodeURIComponent(data.note)+"<a class=deletesymbol href=/deletenote/id/"+data.note_id+"> x</a> </li>";
+                //var input = $('#newnoteforvenueform' + venue_id.toString()).replaceWith(completed_new_note);
+              });
+          } else {
+            document.getElementById ( 'aaa' + venue_id.toString() ).remove();
+          }
+      }
+
+      function submitNote(venue_id) {
+
+        note = $('#newnoteforvenue' + venue_id).val()
+
+        if (note.length > 0) {
+          url = '/addnote';
+          console.log("note: " + note);
+          console.log("venue_id: " + venue_id);
+
+          $.post(
+            url,
+            {venue_id : venue_id, 
+             note : encodeURIComponent(note),
+             action : 'new_venue_note_from_home'
+            },
+            function(data, textStatus, jqXHR) {
+              console.log("response: ");
+              console.log(data);
+              //completed_new_note = "<li>"+decodeURIComponent(data.note)+"<a class=deletesymbol href=/deletenote/id/"+data.note_id+"> x</a> </li>";
+              //var input = $('#newnoteforvenueform' + venue_id.toString()).replaceWith(completed_new_note);
+
+              var element_id = "v" + data.venue_id + "_" + "n" + data.note_id
+              var completed_new_note = "<li id="+element_id+" venue_id="+data.venue_id+" note_id="+data.note_id+" class=venuenote>"+decodeURIComponent(data.note)+"<a class=deletesymbol href=/deletenote/id/"+data.note_id+"> <i class='fa fa-trash-o'></i></a> </li>";
+              $('#newnoteforvenueform' + venue_id.toString()).replaceWith(completed_new_note);
+
+
+
+            });
+        } else {
+          document.getElementById ( 'newnoteforvenueform' + venue_id.toString() ).remove();
+        }
+      }
+
+
+      function submitEditedNote(venue_id) {
+
+        edited_note = document.getElementById('editnoteforvenue'+venue_id.toString())
+        note_id  = edited_note.getAttribute('note_id')
+        note     = edited_note.value
+
+        //!!! Strip last two characters of string to remove the "x" out
+
+
+        //console.log ("submiteditednote" + note + " " + note_id.toString() + " " +venue_id.toString());
+
+        url = '/editnote';
+
+        $.post(
+          url,
+          {note_id : note_id,
+           venue_id : venue_id,
+           note : note
+           //note : encodeURIComponent(note)
+          },
+          function(data, textStatus, jqXHR) {
+            //console.log(data);
+
+            var element_id = "v" + data.venue_id + "_" + "n" + data.note_id
+            var edited_note = "<li id="+element_id+" venue_id="+data.venue_id+" note_id="+data.note_id+" class=venuenote>"+decodeURIComponent(data.note)+"<a class=deletesymbol href=/deletenote/id/"+data.note_id+"> <i class='fa fa-trash-o'></i></a> </li>";
+            $('#' + element_id.toString()).replaceWith(edited_note);
+            //console.log( $('#editnoteforvenueform' + data.venue_id ));
+          });
+      }
+    </script>
+
+    <!-- Enable the Showing/Hiding, Staring/Unstarring, Adding/Removing/Editing of Pages and their Notes -->
+    <script>
+
+      function addPageNoteToPage(page_id) {
+        var form = createAddPageNoteElement(page_id);
+        $('#page' + page_id.toString()).append(form);
+
+        var new_page_note_input = document.getElementById ( 'newpagenoteforpage' + page_id.toString() );
+        console.log(new_page_note_input);
+        new_page_note_input.focus();
+        new_page_note_input.select();
+      }
+
+
+      function createAddPageNoteElement(page_id) {
+
+        var e = document.createElement("li");
+        e.className = 'newpagenoteforpageform';
+        e.id = 'newpagenoteforpageform' + page_id;
+        e.setAttribute('page_id',page_id);
+
+        var i = document.createElement("textarea");
+        i.className = 'newpagenotetext';
+        i.id = 'newpagenoteforpage' + page_id
+        i.setAttribute('onblur',"submitPageNote("+page_id+")");
+
+        e.appendChild(i); 
+
+        return e;
+      }
+
+      // !!! Should switch to a listener rather than inline handler
+      function editPageNote(element) {
+
+        var page_id = element.getAttribute('page_id')
+        var note_id = element.getAttribute('note_id')
+        var note = element.innerText;
+        note = note.substring(0, note.length - 1);  //Current code includes 'x'--this strips it from the form. 
+
+        var i = document.createElement("textarea");
+        console.log("element id: " + element.id);
+
+        i.className = 'editpagenotetext';
+        i.id = 'editpagenoteforpage' + page_id;
+        i.setAttribute('note_id', note_id);
+        i.setAttribute('page_id', page_id);
+        i.setAttribute('onblur',"submitEditedPageNote("+page_id+")");
+        i.value = note;
+        element.innerText = '';
+
+        element.appendChild(i);
+        i.focus();
+        //i.select();
+      }
+
+
+      /* !!! pass the element, not just the id
+         Submits a page note that was added by the end user in the UI
+      */
+      function submitPageNote(page_id) {
+        note = $( '#newpagenoteforpage'+page_id.toString() ).val();
+
+        if (note.length > 0) {
+          url = '/addnote';
+          console.log("note: " + note);
+          console.log("page_id: " + page_id);
+
+          $.post(
+            url,
+            {page_id : page_id, 
+             note : encodeURIComponent(note),
+             action : 'new_page_note_from_home'
+            },
+            function(data, textStatus, jqXHR) {
+              console.log(data);
+              completed_new_note = "<li>"+decodeURIComponent(data.note)+"<a class=deletesymbol href=/deletepagenote/id/"+data.note_id+"> </a> </li>";
+              var input = $('#newpagenoteforpageform' + page_id.toString()).replaceWith(completed_new_note);
+            });
+        } else {
+          document.getElementById ( 'newpagenoteforpageform' + page_id.toString() ).remove();
+        }
+      }
+
+
+      function submitEditedPageNote(page_id) {
+
+        edited_note = document.getElementById('editpagenoteforpage'+page_id.toString())
+        note_id  = edited_note.getAttribute('note_id')
+        note     = edited_note.value
+
+        console.log ("submiteditednote: " + note + " " + note_id.toString() + " " +page_id.toString());
+        url = '/editpagenote';
+
+        $.post(
+          url,
+          {note_id : note_id,
+           page_id : page_id,
+           //note : encodeURIComponent(note)
+           note : note
+
+          },
+          function(data, textStatus, jqXHR) {
+            //console.log(data);
+
+            var element_id = "p" + data.page_id + "_" + "n" + data.note_id
+
+            var edited_note = "<li id="+element_id+" page_id="+data.page_id+" note_id="+data.note_id+" class=pagenote>"+decodeURIComponent(data.note)+"<a class=deletesymbol href=/deletepagenote/id/"+data.note_id+"> <i class='fa fa-trash-o'></i></a> </li>";
+
+
+            $('#' + element_id.toString()).replaceWith(edited_note);
+            //console.log( $('#editnoteforpageform' + data.page_id ));
+          });
+      }
+    </script>
+
+    <!-- If user has editing priveleges, enable of clicks and keyboard entries for editing -->
+    {% if session.can_edit %}
+      <script>
+
+      // Catches all Public Clicks
+      $(document).click(function(event) {
+        var element = $(event.target);
+
+        //If user clicks on a venue note, enable end user to edit it
+        if (element[0].className == 'venuenote') {
+            editNote(element[0]);
+        }
+        if (element[0].className == 'pagenote') {
+            editPageNote(element[0]);
+        }
+
+      });
+
+      // Catches keyboard entries 
+      //  If keyboard = enter, then submit added note
+      //  Else If keyboard = escape, erase note and exit adding
+      $(document).keyup(function(e) {
+          //Return
+          if(e.keyCode == 13) {
+            $(".newnotetext").blur();
+            $(".editnotetext").blur();
+
+            $(".newpagenotetext").blur();
+            $(".editpagenotetext").blur();
+          }
+          //Escape
+          else if(e.keyCode == 27) {
+            $(".newnotetext").val('');
+            $(".newnotetext").blur();
+            $(".editnotetext").blur();
+
+            $(".newpagenotetext").val('');
+            $(".newpagenotetext").blur();
+            $(".editpagenotetext").blur();
+
+           // $(".newnotetext").blur();
+          }
+      });
+
+      </script>
+    {% endif %}
+
+    <script>
+
+
+      // !!! Should switch to a listener rather than inline handler Triggered when user higlights an element  
+      function emphasizeNote(element) {
+        element.style.backgroundColor =  "#E1ECF4"; 
+        i = $(element).data('nbr')
+        google.maps.event.trigger(markers[i], 'click');
+        
+
+        //element.style.border = "1px solid gray";
+        //element.style.borderRadius = "3px";
+      }
+      function deemphasizeNote(element) {
+        element.style.backgroundColor =  ""; 
+        //element.style.border = "";
+        //element.style.borderRadius = "";
+      }
+
+
+     $(document).click(function() {
+
+       var currentMaxHeight = $("#" + event.target.id).css('max-height') ;
+       //console.log(currentMaxHeight);
+        
+
+        //Expand and Shrink Images
+        if ((event.target.className == 'pageimage' || event.target.className == 'venueimage') //) {
+             && (currentMaxHeight == "140px")) {
+
+            $(".pageimage").css({
+                 maxHeight: "140px", 
+                 maxWidth: "140px"
+             });
+            $(".venueimage").css({
+                 maxHeight: "140px", 
+                 maxWidth: "140px"
+             });
+            $("#" + event.target.id).css({
+                 maxHeight: "500px", 
+                 maxWidth: "600px"
+             });
+            //event.target.id = "500px";
+        } else {
+            $(".pageimage").css({
+                 maxHeight: "140px", 
+                 maxWidth: "140px"
+             });
+            $(".venueimage").css({
+                 maxHeight: "140px", 
+                 maxWidth: "140px"
+             });
+        }
+
+      });
+
+    </script>
+
+    <script>
+      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+      (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+      m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+      })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+      ga('create', 'UA-84233332-1', 'auto');
+      ga('send', 'pageview');
+
+    </script>
+
+</html>
