@@ -769,11 +769,11 @@ def create_table(table):
 
     import models
     klass = getattr(models, table)
-    t = klass()
+    #t = klass()
 
 
     try: 
-        t.__table__.create(db.session.bind, checkfirst=True)
+        klass.__table__.create(db.session.bind, checkfirst=True)
         msg = "Created table: %s" % (table)
 
     except Exception as e:
@@ -790,10 +790,10 @@ def drop_table(table):
 
     import models
     klass = getattr(models, table)
-    t = klass()
+    #t = klass()
 
     try: 
-        t.__table__.drop(db.session.bind, checkfirst=True)
+        klass.__table__.drop(db.session.bind, checkfirst=True)
         msg = "Dropped table: %s" % (table)
 
     except Exception as e:
@@ -801,7 +801,6 @@ def drop_table(table):
         msg = "Could not drop table: %s" % (table)
         
     return redirect(url_for('show_admin', msg = msg ))
-
 
 
 @app.route('/admin/', methods=['GET'])
@@ -819,65 +818,6 @@ def show_admin():
 
 
     return render_template('show_admin.html', table_classes=table_classes, table_names=table_names, msg=msg)
-
-
-
-@app.route('/admin/api/createtable', methods=['GET'])
-
-
-@app.route('/createtables')
-#!!! @login_required 
-def create_tables(): 
-
-
-
-
-    EmailInvite.__table__.create(db.session.bind, checkfirst=True)
-    
-    User.__table__.create(db.session.bind, checkfirst=True)
-
-    Location.__table__.create(db.session.bind, checkfirst=True)
-
-    Venue.__table__.create(db.session.bind, checkfirst=True)
-    VenueCategory.__table__.create(db.session.bind, checkfirst=True)
-    UserVenue.__table__.create(db.session.bind, checkfirst=True)
-
-    Note.__table__.create(db.session.bind, checkfirst=True)
-    
-    Page.__table__.create(db.session.bind, checkfirst=True)
-    PageNote.__table__.create(db.session.bind, checkfirst=True)
-    UserPage.__table__.create(db.session.bind, checkfirst=True)
-    
-    UserImage.__table__.create(db.session.bind, checkfirst=True)
-
-    #db.session.execute.create_all()
-    return "created tables"
-
-
-@app.route('/droptables')
-#!!! @login_required 
-def drop_tables(): 
-
-    UserImage.__table__.drop(db.session.bind, checkfirst=True)
-
-    Note.__table__.drop(db.session.bind, checkfirst=True)
-    VenueCategory.__table__.drop(db.session.bind, checkfirst=True)
-    UserVenue.__table__.drop(db.session.bind, checkfirst=True)
-    Venue.__table__.drop(db.session.bind, checkfirst=True)
-
-    PageNote.__table__.drop(db.session.bind, checkfirst=True)
-    UserPage.__table__.drop(db.session.bind, checkfirst=True)
-    Page.__table__.drop(db.session.bind, checkfirst=True)
-
-    Location.__table__.drop(db.session.bind, checkfirst=True)
-    User.__table__.drop(db.session.bind, checkfirst=True)
-
-    EmailInvite.__table__.create(db.session.bind, checkfirst=True)
-
-    db.session.commit()
-
-    #create_database()    
-    return "dropped tables"
 
 
 @app.route('/truncatetables')
