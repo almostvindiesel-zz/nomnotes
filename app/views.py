@@ -10,6 +10,7 @@ warnings.simplefilter('ignore', ExtDeprecationWarning)
 #import sqlite3
 import urllib
 import os
+#import sys
 import random
 import requests
 import requests.packages.urllib3
@@ -28,6 +29,8 @@ from flask import Flask, request, session, g, redirect, url_for, abort, render_t
 from sqlalchemy.dialects import postgresql
 #from flaskext.mysql import MySQL
 #import MySQLdb
+
+#sys.setdefaultencoding("utf-8")
 
 
 """
@@ -176,6 +179,9 @@ def edit_note():
 
         sql = text('update note set note = :note where id = :note_id')
         sql = sql.bindparams(note=note, note_id=note_id)
+
+        #sql = text('update note set note = :note, source_url= :source_url where id = :note_id')
+        #sql = sql.bindparams(note=note, note_id=note_id, source_url='')
         db.session.execute(sql)
         db.session.commit()
 
@@ -803,6 +809,24 @@ def drop_table(table):
         
     return redirect(url_for('show_admin', msg = msg ))
 
+@app.route('/admin/api/truncatetable/<table>', methods=['GET'])
+def truncate_table(table):
+
+    print '-' * 50
+    print "About to truncate table: ", table
+
+    try: 
+        db.session.execute("delete from %s where id >= 1" % (table))
+        db.session.commit()
+        msg = "Truncated table: %s" % (table)
+
+
+    except Exception as e:
+        print "Error ", e.message, e.args
+        msg = "ERROR. Could NOT drop table: %s" % (table)
+        
+    return redirect(url_for('show_admin', msg = msg ))
+
 
 @app.route('/admin/', methods=['GET'])
 #!!! @login_required 
@@ -1072,7 +1096,7 @@ def get_venues_with_notes():
         print "~~~ user_rating:", session['user_rating']
         venues_result_set = venues_result_set.filter(UserVenue.user_rating == session['user_rating'])
     #print '-'*50
-    venues_result_set = venues_result_set.limit(50)
+    venues_result_set = venues_result_set.limit(200)
 
     print "--- Get Venue SQL: \r\n", 
     print str(venues_result_set.statement.compile(dialect=postgresql.dialect()))
@@ -1082,9 +1106,21 @@ def get_venues_with_notes():
 
         notes_array = []
         for note_row in row.notes:
+
+            #!!! Add source back to model
+            if note_row.source_url.find('tripadvisor') >= 0:
+                note_source = 'tripadvisor'
+            elif note_row.source_url.find('yelp') >= 0:
+                note_source = 'yelp'
+            elif note_row.source_url.find('foursquare') >= 0:
+                note_source = 'foursquare'
+            else:
+                note_source = 'other'
+
             item = dict(
                 note = note_row.note,
-                id = note_row.id
+                id = note_row.id,
+                source = note_source
                 )
             notes_array.append(item)
         images_array = []

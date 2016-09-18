@@ -117,9 +117,9 @@ input.emailinvite {
                 </span>
                 
                 <span class=introbody>
-                  Highlight tips and pics from review sites,
-                  blogs, recommendations from friends, or anything online, 
-                  and itlyst consolidates them to one place.
+                  Highlight tips and pics from anywhere online—review sites,
+                  blogs, suggestions from friends—and itlyst organizes your notes
+                  to one place. 
                 </span>
               </div>
               <div class="col-sm-6"></div>
@@ -138,7 +138,7 @@ input.emailinvite {
             <br>
             <div class="row">
               <div class="col-sm-6">
-                <span class=introtext> Or Browse Existing Lysts</span>
+                <span class=introtext id=browselysts> Or Browse Existing Lysts</span>
                 <table>
                   <tr>
                     <td><a href='/profile/almostvindiesel?city=Los%20Angeles&zoom=50' target='_blank'><img src='/static/img/los-angeles.png' class=citylogo></a></td>
@@ -257,8 +257,9 @@ input.emailinvite {
                   {email : email},
                   function(data, textStatus, jqXHR) {
                     //alert("added email: " + email);
-                    var html="<h4 class='invitesuccess'>Success! We'll notify you when itlist is generally available</h4>";
+                    var html="<h4 class='invitesuccess'>Success! We'll notify you when It Lyst is generally available. Until then, check out some of the lysts below:</h4>";
                     $('#emailform').html(html);
+                    $('#browselysts').hide(); 
 
                     //window.location = "/";
                     //alert(data);

@@ -397,7 +397,7 @@
                   
 
 
-                    <h2>Venue Lyst </h2>
+                    <h2>Location Lyst </h2>
                     <ul class="nav navbar-right panel_toolbox">
                       <li><a class="collapse-link"><i class="fa fa-chevron-up"></i></a>
                       </li>
@@ -425,8 +425,8 @@
                             </li>
                           </ul>
                           {% endif %}
-                        <button type='button' class='venue-click hidden-xs' data-nbr={{venue_nbr}}>{{venue_nbr + 1}}. {{ datum.name }}</button>
-                        <button type='button' class='venue-click visible-xs' data-nbr={{venue_nbr}}>{{venue_nbr + 1}}. {{ datum.name | truncate(30)}}</button>
+                        <button type='button' class='venue-click' data-nbr={{venue_nbr}}>{{venue_nbr + 1}}. {{ datum.name }}</button>
+                        <!--<button type='button' class='venue-click visible-xs' data-nbr={{venue_nbr}}>{{venue_nbr + 1}}. {{ datum.name | truncate(30)}}</button>-->
                         {% if datum.foursquare_rating %}
                           {{ datum.foursquare_rating }}, {{ datum.foursquare_reviews }} tips
                         {% elif datum.tripadvisor_rating %}
@@ -440,13 +440,13 @@
                         </a>
                           
                         {% if datum.foursquare_url %}
-                          <a target='_blank' href='{{ datum.foursquare_url }}'><i class='fa fa-foursquare'></i></a>
+                          <a target='_blank' href='{{ datum.foursquare_url }}'><i class='fa fa-foursquare faicons'></i></a>
                         {% endif %}
                         {% if datum.tripadvisor_url %}
-                          <a target='_blank' href='{{ datum.tripadvisor_url }}'><i class='fa fa-tripadvisor'></i></a>
+                          <a target='_blank' href='{{ datum.tripadvisor_url }}'><i class='fa fa-tripadvisor faicons'></i></a>
                         {% endif %}
                         {% if datum.yelp_url %}
-                          <a target='_blank' href='{{ datum.yelp_url }}'><i class='fa fa-yelp'></i></a>
+                          <a target='_blank' href='{{ datum.yelp_url }}'><i class='fa fa-yelp faicons'></i></a>
                         {% endif %}
                         <!--<a target='_blank' href='http://google.com/maps?q={{ datum.latitude }},{{ datum.longitude }}'>
                           <img class=logos src=/static/img/gmaps-icon.png>
@@ -454,8 +454,8 @@
                         
                         {% if session.can_edit %}
                           <!--<a class=hidesymbol href='/hidevenue/id/{{ datum.id }}'><i class='fa fa-eye-slash'></i></a>-->
-                          <a class=deletesymbol href='/deletevenue/id/{{ datum.id }}'><i class='fa fa-trash-o'></i></a>
-                          <a class=addsymbol onclick=addNoteToVenue({{ datum.id }})><i class='fa fa-plus-square-o'></i></a>
+                          <a class=deletesymbol href='/deletevenue/id/{{ datum.id }}'><i class='fa fa-trash-o faicons'></i></a>
+                          <a class=addsymbol onclick=addNoteToVenue({{ datum.id }})><i class='fa fa-plus-square-o faicons'></i></a>
                         {% endif %}
 
                         </li>
@@ -464,16 +464,32 @@
                             <li id='v{{datum.id}}_n{{note.id}}' venue_id='{{ datum.id }}' note_id='{{ note.id }}' class='venuenote'  
                             onmouseover="emphasizeNote(this)" onmouseout="deemphasizeNote(this)" data-nbr={{venue_nbr}}>
                               {{ note.note | safe }}
+                              
+                              <span id='notesource_v{{datum.id}}_n{{note.id}}'>
+                                {% if note.source == 'tripadvisor' %}
+                                  <i class='fa fa-tripadvisor faicons' ></i>
+                                {% elif note.source == 'foursquare' %}
+                                  <i class='fa fa-foursquare'></i>
+                                {% elif note.source == 'yelp' %}
+                                  <i class='fa fa-yelp'></i>
+                                {% else %}
+                                  <i></i>
+                                {% endif %}
+                              </span>
+
+                              <!--
                               {% if session.can_edit %}
-                                <a class=deletesymbol href='/deletenote/id/{{ note.id }}'><i class='fa fa-trash-o'></i></a>
+                                <a class=deletesymbol href='/deletenote/id/{{ note.id }}'><i class='fa fa-trash-o faicons'></i></a>
                               {% endif %}
+                              -->
+
                             </li>
                         {% endfor %}
 
                         
                         {% for image in datum.images %}
                           <span class=image>
-                            <img src={{ image.image_url  }} class='venueimage imgresponsive' id='v{{datum.id}}_i{{image.id}}'><span class=pageimage>{% if session.can_edit %}<a class=deletesymbolimage href='/deleteimage/id/{{ image.id }}' ><i class='fa fa-trash-o'></i></a></span>{% endif %}
+                            <img src={{ image.image_url  }} class='venueimage' id='v{{datum.id}}_i{{image.id}}'><span class=pageimage>{% if session.can_edit %}<a class=deletesymbolimage href='/deleteimage/id/{{ image.id }}' ><i class='fa fa-trash-o faicons'></i></a></span>{% endif %}
                            </span>
                            &nbsp;
                         {% endfor %}
@@ -502,7 +518,7 @@
                 {% if pages  %}
                 <div class="x_panel">
                   <div class="x_title">
-                    <h2>General Lysts</h2>
+                    <h2>Webpage Lysts</h2>
                     <ul class="nav navbar-right panel_toolbox">
                       <li></li>
                       <li></li>
@@ -536,8 +552,8 @@
 
                         {% if session.can_edit %}
                          <!-- <a class=hidesymbol href='/hidepage/id/{{ datum.id }}'><i class='fa fa-eye-slash'></i></a>-->
-                          <a class=deletesymbol href='/deletepage/id/{{ datum.id }}'><i class='fa fa-trash-o'></i></a>
-                          <a class=addsymbol onclick=addPageNoteToPage({{ datum.id }})><i class='fa fa-plus-square-o'></i></a>
+                          <a class=deletesymbol href='/deletepage/id/{{ datum.id }}'><i class='fa fa-trash-o faicons'></i></a>
+                          <a class=addsymbol onclick=addPageNoteToPage({{ datum.id }})><i class='fa fa-plus-square-o faicons'></i></a>
                         {% endif %}
 
                         </li>
@@ -545,15 +561,17 @@
                         {% for note in datum.notes %}
                             <li id='p{{datum.id}}_n{{note.id}}' page_id='{{ datum.id }}' note_id='{{ note.id }}' class='pagenote'  onmouseover="emphasizeNote(this)" onmouseout="deemphasizeNote(this)" >
                               {{ note.note | safe }}
+                              <!--
                               {% if session.can_edit %}
                                 <a class=deletesymbol href='/deletepagenote/id/{{ note.id }}' ><i class='fa fa-trash-o'></i></a>
                               {% endif %}
+                              -->
                             </li>
                         {% endfor %}
 
                         {% for image in datum.images %}
                         <span class=image>
-                            <img src={{ image.image_url  }} class=pageimage id='p{{datum.id}}_i{{image.id}}'><span class=pageimage>{% if session.can_edit %}<a class=deletesymbolimage href='/deleteimage/id/{{ image.id }}' ><i class='fa fa-trash-o'></i></a></span>{% endif %}
+                            <img src={{ image.image_url  }} class=pageimage id='p{{datum.id}}_i{{image.id}}'><span class=pageimage>{% if session.can_edit %}<a class=deletesymbolimage href='/deleteimage/id/{{ image.id }}' ><i class='fa fa-trash-o faicons'></i></a></span>{% endif %}
                         </span>
                         &nbsp;
                         {% endfor %}
@@ -917,32 +935,36 @@ $(document).click(function(event) {
     <script>
 
       function addNoteToVenue(venue_id) {
-        var form = createAddNoteElement(venue_id);
-        $('#venue' + venue_id.toString()).append(form);
+        setTimeout(function() {
+            var form = createAddNoteElement(venue_id);
+            $('#venue' + venue_id.toString()).append(form);
 
-        var new_note_input = document.getElementById ( 'newnoteforvenue' + venue_id.toString() );
-        console.log(new_note_input);
-        new_note_input.focus();
-        new_note_input.select();
+            var new_note_input = document.getElementById ( 'newnoteforvenue' + venue_id.toString() );
+            console.log(new_note_input);
+            new_note_input.focus();
+            new_note_input.select();
+        }, 100);
+        
       }
 
 
       function createAddNoteElement(venue_id) {
 
-        var e = document.createElement("li");
-        e.className = 'newnoteforvenueform';
-        e.id = 'newnoteforvenueform' + venue_id;
-        e.setAttribute('venue_id',venue_id);
+        var li = document.createElement("li");
+        li.className = 'newnoteforvenueform';
+        li.id = 'newnoteforvenueform' + venue_id;
+        li.setAttribute('venue_id',venue_id);
 
-        var i = document.createElement("textarea");
-        i.className = 'newnotetext';
-        i.id = 'newnoteforvenue' + venue_id
-        i.setAttribute('onblur',"submitNote("+venue_id+")");
+        var ta = document.createElement("textarea");
+        ta.className = 'newnotetext';
+        ta.id = 'newnoteforvenue' + venue_id
+        ta.setAttribute('venue_id',venue_id);
 
-        e.appendChild(i); 
+        //ta.setAttribute('onblur',"submitNote("+venue_id+")");
 
-        return e;
+        li.appendChild(ta); 
 
+        return li;
       }
 
       // !!! Should switch to a listener rather than inline handler
@@ -951,22 +973,34 @@ $(document).click(function(event) {
         var venue_id = element.getAttribute('venue_id')
         var note_id = element.getAttribute('note_id')
         var note = element.innerText;
-        note = note.substring(0, note.length - 1);  //Current code includes 'x'--this strips it from the form. 
 
-        var i = document.createElement("textarea");
-        console.log("element id: " + element.id);
+        var input = document.createElement("textarea");
+        input.className = 'editnotetext';
+        input.id = 'editnoteforvenue' + venue_id;
+        input.setAttribute('note_id', note_id);
+        input.setAttribute('venue_id', venue_id);
+        input.setAttribute('existing_note', note);
+        input.value = note;
 
-        i.className = 'editnotetext';
-        i.id = 'editnoteforvenue' + venue_id;
-        i.setAttribute('note_id', note_id);
-        i.setAttribute('venue_id', venue_id);
-        i.setAttribute('onblur',"submitEditedNote("+venue_id+")");
-        i.value = note;
         element.innerText = '';
+        element.appendChild(input);
 
-        element.appendChild(i);
-        i.focus();
-        //i.select();
+
+        //container for the trash icon
+        //<a class=deletesymbol href='/deletenote/id/ note.id'><i class='fa fa-trash-o faicons'></i></a>
+        var a =  document.createElement("a");
+        a.className = 'deletesymbol';
+        a.id = 'deletenotesymbol' + note_id;
+        a.setAttribute('href', "/deletenote/id/"+note_id);
+        var i = document.createElement("i");
+        i.className = 'fa fa-trash-o faicons'; //tbd on future classname
+        a.appendChild(i)
+        element.appendChild(a);
+
+        //element.appendChild(a);
+        //element.appendChild(note_source_element);
+
+        input.focus();
       }
 
 
@@ -998,14 +1032,24 @@ $(document).click(function(event) {
           }
       }
 
-      function submitNote(venue_id) {
+      function submitNote(new_note) {
 
-        note = $('#newnoteforvenue' + venue_id).val()
+        //alert(new_note.innerHTML);
+        //console.log("----")
+        //console.log(new_note);
+        //console.log("----")
+        //note = $('#newnoteforvenue' + venue_id).val()
+
+        var venue_id  = new_note.getAttribute('venue_id');
+        var note      = new_note.value;
+
+        //console.log("nn venue_id", venue_id);
+        //console.log("nn note", note);
 
         if (note.length > 0) {
           url = '/addnote';
-          console.log("note: " + note);
-          console.log("venue_id: " + venue_id);
+          //console.log("note: " + note);
+          //console.log("venue_id: " + venue_id);
 
           $.post(
             url,
@@ -1014,15 +1058,27 @@ $(document).click(function(event) {
              action : 'new_venue_note_from_home'
             },
             function(data, textStatus, jqXHR) {
-              console.log("response: ");
-              console.log(data);
+              //console.log("response: ");
+              //console.log(data);
               //completed_new_note = "<li>"+decodeURIComponent(data.note)+"<a class=deletesymbol href=/deletenote/id/"+data.note_id+"> x</a> </li>";
               //var input = $('#newnoteforvenueform' + venue_id.toString()).replaceWith(completed_new_note);
+              var element_id = "v" + data.venue_id + "_" + "n" + data.note_id;
 
-              var element_id = "v" + data.venue_id + "_" + "n" + data.note_id
-              var completed_new_note = "<li id="+element_id+" venue_id="+data.venue_id+" note_id="+data.note_id+" class=venuenote>"+decodeURIComponent(data.note)+"<a class=deletesymbol href=/deletenote/id/"+data.note_id+"> <i class='fa fa-trash-o'></i></a> </li>";
-              $('#newnoteforvenueform' + venue_id.toString()).replaceWith(completed_new_note);
+              var li = document.createElement("li");
+              li.id = element_id;
+              li.className = 'venuenote'; //tbd on future classname
+              li.setAttribute('note_id',  data.note_id);
+              li.setAttribute('venue_id', data.venue_id);
+              li.innerHTML = decodeURIComponent(data.note);
+              new_note.parentNode.replaceChild(li, new_note);
 
+              //!!! Append Empty source logo
+              var note_source_span = document.createElement("span");
+              note_source_span.id = "notesource_v"+data.venue_id+"_n"+data.note_id;
+              var note_source_i = document.createElement("i");
+              note_source_span.appendChild(note_source_i);
+
+              $('#newnoteforvenueform' + venue_id.toString()).append(note_source_span);
 
 
             });
@@ -1032,32 +1088,59 @@ $(document).click(function(event) {
       }
 
 
-      function submitEditedNote(venue_id) {
+      function submitEditedNote(edited_note) {
 
-        edited_note = document.getElementById('editnoteforvenue'+venue_id.toString())
-        note_id  = edited_note.getAttribute('note_id')
-        note     = edited_note.value
+        var venue_id = edited_note.getAttribute('venue_id')
+        var note_id  = edited_note.getAttribute('note_id')
+        var note     = edited_note.value
 
-        //!!! Strip last two characters of string to remove the "x" out
+        //var edited_note = document.getElementById('editnoteforvenue'+venue_id.toString())
+
+        console.log("venue_id " + venue_id);
+        console.log("note_id  " + note_id);
+        console.log("note  " + note);
 
 
-        //console.log ("submiteditednote" + note + " " + note_id.toString() + " " +venue_id.toString());
+        //throw new Error("STOPPING");
+
+
 
         url = '/editnote';
 
         $.post(
-          url,
-          {note_id : note_id,
-           venue_id : venue_id,
-           note : note
-           //note : encodeURIComponent(note)
+            url,
+            {note_id : note_id,
+             venue_id : venue_id,
+             note : note
+             //note : encodeURIComponent(note)
           },
           function(data, textStatus, jqXHR) {
             //console.log(data);
 
-            var element_id = "v" + data.venue_id + "_" + "n" + data.note_id
-            var edited_note = "<li id="+element_id+" venue_id="+data.venue_id+" note_id="+data.note_id+" class=venuenote>"+decodeURIComponent(data.note)+"<a class=deletesymbol href=/deletenote/id/"+data.note_id+"> <i class='fa fa-trash-o'></i></a> </li>";
-            $('#' + element_id.toString()).replaceWith(edited_note);
+            //edited note
+            //var edited_note = "<li id="+element_id+" venue_id="+data.venue_id+" note_id="+data.note_id+" class=venuenote>"+decodeURIComponent(data.note)+"</li>";
+            var element_id = "v" + data.venue_id + "_" + "n" + data.note_id;
+
+            var element = document.getElementById(element_id);
+
+            var li = document.createElement("li");
+            li.id = element_id;
+            li.className = 'venuenote'; //tbd on future classname
+            li.setAttribute('note_id',  data.note_id);
+            li.setAttribute('venue_id', data.venue_id);
+            li.innerHTML = decodeURIComponent(data.note);
+            element.parentNode.replaceChild(li, element);
+
+            //container for the source icon
+            //<span id='notesource_vdatum.id_nnote.id'><i class='fa fa-tripadvisor faicons' ></i></span>
+            var note_source_span =  document.createElement("span");
+            note_source_span.id = "notesource_v"+venue_id+"_n"+note_id
+            var note_source_i =  document.createElement("i"); 
+            note_source_span.appendChild(note_source_i);
+            element.appendChild(note_source_span);
+            //$('#' + element_id.toString()).appendTo(note_source_span);
+            //$('#' + element_id.toString()).appendTo(a);
+
             //console.log( $('#editnoteforvenueform' + data.venue_id ));
           });
       }
@@ -1067,31 +1150,33 @@ $(document).click(function(event) {
     <script>
 
       function addPageNoteToPage(page_id) {
-        var form = createAddPageNoteElement(page_id);
-        $('#page' + page_id.toString()).append(form);
+        setTimeout(function() {
+          var form = createAddPageNoteElement(page_id);
+          $('#page' + page_id.toString()).append(form);
 
-        var new_page_note_input = document.getElementById ( 'newpagenoteforpage' + page_id.toString() );
-        console.log(new_page_note_input);
-        new_page_note_input.focus();
-        new_page_note_input.select();
+          var new_page_note_input = document.getElementById ( 'newpagenoteforpage' + page_id.toString() );
+          console.log(new_page_note_input);
+          new_page_note_input.focus();
+          new_page_note_input.select();
+        }, 100);
       }
 
 
       function createAddPageNoteElement(page_id) {
 
-        var e = document.createElement("li");
-        e.className = 'newpagenoteforpageform';
-        e.id = 'newpagenoteforpageform' + page_id;
-        e.setAttribute('page_id',page_id);
+        var li = document.createElement("li");
+        li.className = 'newpagenoteforpageform';
+        li.id = 'newpagenoteforpageform' + page_id;
+        li.setAttribute('page_id',page_id);
 
-        var i = document.createElement("textarea");
-        i.className = 'newpagenotetext';
-        i.id = 'newpagenoteforpage' + page_id
-        i.setAttribute('onblur',"submitPageNote("+page_id+")");
+        var ta = document.createElement("textarea");
+        ta.className = 'newpagenotetext';
+        ta.id = 'newpagenoteforpage' + page_id
+        ta.setAttribute('page_id',page_id);
 
-        e.appendChild(i); 
+        li.appendChild(ta); 
 
-        return e;
+        return li;
       }
 
       // !!! Should switch to a listener rather than inline handler
@@ -1100,30 +1185,38 @@ $(document).click(function(event) {
         var page_id = element.getAttribute('page_id')
         var note_id = element.getAttribute('note_id')
         var note = element.innerText;
-        note = note.substring(0, note.length - 1);  //Current code includes 'x'--this strips it from the form. 
 
-        var i = document.createElement("textarea");
-        console.log("element id: " + element.id);
+        var ta = document.createElement("textarea");
+        ta.className = 'editpagenotetext';
+        ta.id = 'editpagenoteforpage' + page_id;
+        ta.setAttribute('note_id', note_id);
+        ta.setAttribute('page_id', page_id);
+        ta.setAttribute('existing_note', note);
 
-        i.className = 'editpagenotetext';
-        i.id = 'editpagenoteforpage' + page_id;
-        i.setAttribute('note_id', note_id);
-        i.setAttribute('page_id', page_id);
-        i.setAttribute('onblur',"submitEditedPageNote("+page_id+")");
-        i.value = note;
+        ta.value = note;
         element.innerText = '';
 
-        element.appendChild(i);
-        i.focus();
-        //i.select();
+        element.appendChild(ta);
+        ta.focus();
+
+        var a =  document.createElement("a");
+        a.className = 'deletesymbol';
+        a.setAttribute('href', "/deletepagenote/id/"+note_id);
+        a.id = 'deletepagenotesymbol' + note_id;
+        var i = document.createElement("i");
+        i.className = 'fa fa-trash-o faicons'; //tbd on future classname
+        a.appendChild(i)
+        element.appendChild(a);
       }
 
 
       /* !!! pass the element, not just the id
          Submits a page note that was added by the end user in the UI
       */
-      function submitPageNote(page_id) {
-        note = $( '#newpagenoteforpage'+page_id.toString() ).val();
+      function submitPageNote(new_page_note) {
+
+        var page_id  = new_page_note.getAttribute('page_id');
+        var note     = new_page_note.value;
 
         if (note.length > 0) {
           url = '/addnote';
@@ -1137,9 +1230,15 @@ $(document).click(function(event) {
              action : 'new_page_note_from_home'
             },
             function(data, textStatus, jqXHR) {
-              console.log(data);
-              completed_new_note = "<li>"+decodeURIComponent(data.note)+"<a class=deletesymbol href=/deletepagenote/id/"+data.note_id+"> </a> </li>";
-              var input = $('#newpagenoteforpageform' + page_id.toString()).replaceWith(completed_new_note);
+
+              var li = document.createElement("li");
+              li.id =  "p" + data.page_id + "_" + "n" + data.note_id;
+              li.className = 'pagenote'; //tbd on future classname
+              li.setAttribute('page_id',  data.page_id);
+              li.setAttribute('note_id',  data.note_id);
+              li.innerHTML = decodeURIComponent(data.note);
+              new_page_note.parentNode.replaceChild(li, new_page_note);
+            
             });
         } else {
           document.getElementById ( 'newpagenoteforpageform' + page_id.toString() ).remove();
@@ -1147,33 +1246,39 @@ $(document).click(function(event) {
       }
 
 
-      function submitEditedPageNote(page_id) {
+      function submitEditedPageNote(edited_page_note) {
 
-        edited_note = document.getElementById('editpagenoteforpage'+page_id.toString())
-        note_id  = edited_note.getAttribute('note_id')
-        note     = edited_note.value
+        var page_id  = edited_page_note.getAttribute('page_id')
+        var note_id  = edited_page_note.getAttribute('note_id')
+        var note     = edited_page_note.value
 
-        console.log ("submiteditednote: " + note + " " + note_id.toString() + " " +page_id.toString());
+        //console.log("page_id " + page_id);
+        //console.log("note_id  " + note_id);
+        //console.log("note  " + note);
+
         url = '/editpagenote';
 
         $.post(
           url,
           {note_id : note_id,
            page_id : page_id,
-           //note : encodeURIComponent(note)
            note : note
-
           },
           function(data, textStatus, jqXHR) {
             //console.log(data);
 
             var element_id = "p" + data.page_id + "_" + "n" + data.note_id
+            var element = document.getElementById(element_id);
 
-            var edited_note = "<li id="+element_id+" page_id="+data.page_id+" note_id="+data.note_id+" class=pagenote>"+decodeURIComponent(data.note)+"<a class=deletesymbol href=/deletepagenote/id/"+data.note_id+"> <i class='fa fa-trash-o'></i></a> </li>";
+            var li = document.createElement("li");
+            li.id = element_id;
+            li.className = 'pagenote'; //tbd on future classname
+            li.setAttribute('note_id',  data.note_id);
+            li.setAttribute('page_id', data.page_id);
+            li.innerHTML = decodeURIComponent(data.note);
+            element.parentNode.replaceChild(li, element);
 
-
-            $('#' + element_id.toString()).replaceWith(edited_note);
-            //console.log( $('#editnoteforpageform' + data.page_id ));
+           
           });
       }
     </script>
@@ -1182,34 +1287,143 @@ $(document).click(function(event) {
     {% if session.can_edit %}
       <script>
 
-      // Catches all Public Clicks
+      // Catches all Page Clicks
+      // ------------------------------------------------------------------------------------------
       $(document).click(function(event) {
-        var element = $(event.target);
+        var clicked_element = $(event.target);
+
+        //If a click occurs outside the input note box when it's active, then submit the note
+        var editable_note = document.getElementsByClassName("editnotetext");
+        var new_editable_note = document.getElementsByClassName("newnotetext");
+
+        var editable_page_note = document.getElementsByClassName("editpagenotetext");
+        var new_editable_page_note = document.getElementsByClassName("newpagenotetext");
+
+
+        //Once in edit mode, submit the note if a user clicks outside of the note
+        if (editable_note.length > 0 && event.target.className != 'editnotetext') {
+            console.log("Submitting editable note");
+            submitEditedNote(editable_note[0]);
+        }
+        if (new_editable_note.length > 0 && event.target.className != 'newnotetext') {
+            console.log("Submitting new note");
+            submitNote(new_editable_note[0]);
+        }
+
+        if (editable_page_note.length > 0 && event.target.className != 'editpagenotetext') {
+            console.log("Submitting new page note");
+            submitEditedPageNote(editable_page_note[0]);
+        }
+
+        console.log("length: " + new_editable_page_note.length)
+        if (new_editable_page_note.length > 0 && event.target.className != 'newpagenotetext') {
+            console.log("Submitting new editable page note");
+            submitPageNote(new_editable_page_note[0]);
+        }
 
         //If user clicks on a venue note, enable end user to edit it
-        if (element[0].className == 'venuenote') {
-            editNote(element[0]);
+        if (clicked_element[0].className == 'venuenote') {
+            editNote(clicked_element[0]);
         }
-        if (element[0].className == 'pagenote') {
-            editPageNote(element[0]);
+        if (clicked_element[0].className == 'pagenote') {
+            editPageNote(clicked_element[0]);
         }
-
       });
 
-      // Catches keyboard entries 
+      // Catches all Keyboard Entries 
+      // ------------------------------------------------------------------------------------------
+
       //  If keyboard = enter, then submit added note
       //  Else If keyboard = escape, erase note and exit adding
       $(document).keyup(function(e) {
-          //Return
+          var editable_note = document.getElementsByClassName("editnotetext");
+          var new_editable_note = document.getElementsByClassName("newnotetext");
+          var editable_page_note = document.getElementsByClassName("editpagenotetext");
+          var new_editable_page_note = document.getElementsByClassName("newpagenotetext");
+
+
+          //RETURN Keyboard entry. If hit and an textedit is open, submit the note
           if(e.keyCode == 13) {
+            console.log("Enter detected");
+            //console.log("length: ", new_editable_page_note.length);
+            if (editable_note.length > 0) {
+                submitEditedNote(editable_note[0]);
+            }  
+            if (new_editable_note.length > 0) {
+                submitNote(new_editable_note[0]);
+            }
+            if (editable_page_note.length > 0) {
+                submitNote(editable_page_note[0]);
+            }
+            if (new_editable_page_note.length > 0) {
+                submitNote(new_editable_page_note[0]);
+            }
+          //ESCAPE Keyboard entry. If hit and textedit is open, do not save editing
+          } else if(e.keyCode == 27) {
+            console.log("Escape detected");
+            if (editable_note.length > 0) {
+                var note_id  = editable_note[0].getAttribute('note_id');
+                var venue_id = editable_note[0].getAttribute('venue_id');
+                var note     = editable_note[0].getAttribute('existing_note');
+                var element_id = "v" + venue_id + "_" + "n" + note_id;
+
+                editable_note[0].parentNode.id = element_id;
+                editable_note[0].parentNode.className = 'venuenote'; 
+                editable_note[0].parentNode.setAttribute('note_id',  editable_note[0].getAttribute('note_id')  );
+                editable_note[0].parentNode.setAttribute('venue_id', editable_note[0].getAttribute('venue_id') );
+                editable_note[0].parentNode.innerHTML = note;
+                // editable_note[0].parentNode.replaceWith(li, editable_note[0]);
+                document.getElementById("deletenotesymbol" + note_id).remove();
+
+            }  
+            if (new_editable_note.length > 0) {
+                //console.log("got here");
+                new_editable_note[0].parentNode.remove();
+            }
+            if (editable_page_note.length > 0) {
+                var note_id  = editable_page_note[0].getAttribute('note_id');
+                var page_id = editable_page_note[0].getAttribute('page_id');
+                var note     = editable_page_note[0].getAttribute('existing_note');
+                var element_id = "v" + venue_id + "_" + "n" + note_id;
+
+                editable_page_note[0].parentNode.id = element_id;
+                editable_page_note[0].parentNode.className = 'venuenote'; 
+                editable_page_note[0].parentNode.setAttribute('note_id',  editable_page_note[0].getAttribute('note_id')  );
+                editable_page_note[0].parentNode.setAttribute('page_id', editable_page_note[0].getAttribute('page_id') );
+                editable_page_note[0].parentNode.innerHTML = note;
+                // editable_note[0].parentNode.replaceWith(li, editable_note[0]);
+                document.getElementById("deletepagenotesymbol" + note_id).remove();
+            }
+            if (new_editable_page_note.length > 0) {
+                new_editable_page_note[0].parentNode.remove();
+            }
+
+
+
+            /*
+            if (editable_note.length > 0) {
+                submitEditedNote(editable_note[0]);
+            } else if (new_editable_note.length > 0) {
+                submitNote(new_editable_note[0]);
+            }
+            */
+          /*
+          }
+          if(e.keyCode == 13 && editable_note.length > 0) {
+              console.log("Submitting editable note");
+          }
+
             $(".newnotetext").blur();
             $(".editnotetext").blur();
 
             $(".newpagenotetext").blur();
             $(".editpagenotetext").blur();
-          }
+          */
+          //}
           //Escape
-          else if(e.keyCode == 27) {
+          } /*else if(e.keyCode == 27) {
+
+
             $(".newnotetext").val('');
             $(".newnotetext").blur();
             $(".editnotetext").blur();
@@ -1219,7 +1433,7 @@ $(document).click(function(event) {
             $(".editpagenotetext").blur();
 
            // $(".newnotetext").blur();
-          }
+          }*/
       });
 
       </script>
@@ -1264,8 +1478,11 @@ $(document).click(function(event) {
                  maxWidth: "140px"
              });
             $("#" + event.target.id).css({
-                 maxHeight: "500px", 
-                 maxWidth: "600px"
+                 //maxHeight: "500px", 
+                 //maxWidth: "600px"
+
+                 maxHeight: "100%", 
+                 maxWidth: "100%"
              });
             //event.target.id = "500px";
         } else {

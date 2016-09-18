@@ -14,6 +14,15 @@ p.customfont {
 
 }
 
+.sourceicon  {
+	color:gray;
+	font-size: 12px;
+}
+
+.faicons {
+	color: black;
+	font-size: 12px;
+}
 
 body, html, .gmapsecondiv {
   height: 100%;
@@ -180,12 +189,6 @@ button:focus {}
 }
 
 
-/*
-.deletesymbolimage {
-	vertical-align: top;
-	font-weight: bold;
-}
-*/
 
 span.image {
   position:relative;
@@ -246,6 +249,9 @@ span.image a.deletesymbolimage, span.image a.deletesymbolimage {
 	background-color: Transparent;
 	padding: 4px 4px;
 }
+
+
+
 
 a:link    { color: #5f3cee; }       /* unvisited link */
 a:visited { color: #5f3cee;}    /* visited link */
