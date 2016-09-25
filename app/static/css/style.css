@@ -1,12 +1,23 @@
-/*@font-face {
-    font-family: "chalkdust";
-    src: url("/static/fonts/ChalkDust.ttf");
-}*/
+
+@font-face {
+    font-family: 'Open Sans', sans-serif;
+    src: url("https://fonts.googleapis.com/css?family=Open+Sans");
+}
 
 /*
-p.customfont { 
-    font-family: "My Custom Font", Verdana, Tahoma;
-}*/
+html * {
+	font-family: 'Open Sans', sans-serif !important;
+    src: url("https://fonts.googleapis.com/css?family=Open+Sans");
+
+{
+	*/
+
+
+/*
+@font-face {
+    font-family: "myriad-pro","Myriad Pro","Helvetica Neue",Helvetica,Arial,sans-serif !important;
+}
+*/
 
 
 .fa-userratingdisplay {
@@ -224,11 +235,11 @@ span.image a.deletesymbolimage, span.image a.deletesymbolimage {
 }
 
 .venuelistsul, .venuelistanchor, .pagelistsul, .pagelistanchor {
-  padding-left: 20px; /* width of icon + whitespace */
+  padding-left: 0px; /* width of icon + whitespace */
 }
 
+/*
 .venuelistunstar:before, .pagelistunstar {
-	/*background-image: url('/static/img/star-unchecked.png');*/
 	font-family: 'FontAwesome';
 	content: '\f10c';  
 	margin:0 5px 0 -15px;
@@ -236,12 +247,12 @@ span.image a.deletesymbolimage, span.image a.deletesymbolimage {
 }
 
 .venueliststar:before, .pageliststar:before {/*
-	/*background-image: url('/static/img/star-checked.png');*/
 	font-family: 'FontAwesome';
 	content: '\f118';
 	margin:0 5px 0 -15px;
 	color: black;
 }
+*/
 
 .deletesymbol, .addsymbol {
 	/*font-weight: bold;*/

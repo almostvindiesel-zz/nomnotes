@@ -1,5 +1,7 @@
 from app import app
 import os
+import shutil
+
 import sqlite3
 import requests
 import urllib
@@ -10,6 +12,11 @@ from sqlalchemy.sql import func
 from sqlalchemy import UniqueConstraint, distinct, func
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import relationship
+
+from PIL import Image
+from resizeimage import resizeimage
+import imghdr
+
 
 #from flaskext.mysql import MySQL
 #import MySQLdb
@@ -280,14 +287,21 @@ class EmailInvite(db.Model):
             print "Could not insert email: %s" % (self.email)
             print e.message, e.args
 
+# ALTER TABLE user_image add column image_type varchar(10);
+# ALTER TABLE user_image add column image_original varchar(100);
+# ALTER TABLE user_image add column image_name varchar(100);
 
 class UserImage(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
 
     image_url = db.Column(db.String(512))
-    image_thumb = db.Column(db.String(100))
+
+    image_original = db.Column(db.String(100))
     image_large = db.Column(db.String(100))
+    image_thumb = db.Column(db.String(100))
+    image_type = db.Column(db.String(10))
+    image_name = db.Column(db.String(100))
 
     page_id = db.Column(db.Integer, db.ForeignKey('page.id'), nullable=True)
     venue_id = db.Column(db.Integer, db.ForeignKey('venue.id'), nullable=True)
@@ -311,6 +325,91 @@ class UserImage(db.Model):
 
     def __repr__(self):
         return '<UserImage %r>' % self.id
+
+
+    def save_locally(self):
+        image_tmp_name = str(self.user_id) + 'tmp'
+        image_tmp_dir = 'app/static/user/img/'
+
+        print "--- Getting image and saving to directory (%s) from url: \r\n %s" % (image_tmp_dir + image_tmp_name, self.image_url)
+        image_tmp_full_path = os.path.join(image_tmp_dir, image_tmp_name) 
+
+        try:   
+            f = open(image_tmp_full_path,'wb')
+            f.write(urllib.urlopen(self.image_url).read())
+            f.close()
+
+            try: 
+                img_format = imghdr.what(image_tmp_full_path)
+                self.image_type = img_format
+                print "= %s" % (self.image_type)
+                if self.image_type == None:
+                    if self.image_url.lower().find('.jpg') >= 0:
+                        self.image_type = 'jpg'
+                    elif self.image_url.lower().find('.jpeg') >= 0:
+                        self.image_type = 'jpeg'
+                    elif self.image_url.lower().find('.png') >= 0:
+                        self.image_type = 'png'
+                    elif self.image_url.lower().find('.gif') >= 0:
+                        self.image_type = 'gif'
+                    else:
+                        print "ERROR... Could not identify image by library or string in url. Saving without extension"
+                        self.image_type = ''
+                print "--- Image type: %s" % (self.image_type)
+
+            except Exception as e:
+                print "Exception ", e.message, e.args
+                print "ERROR Could not detect image type. Saving without extension"
+                self.image_type = ''
+
+            image_id = str(self.id)
+            image_dir = image_tmp_dir
+            image_original_path = os.path.join(image_dir, image_id + '.' + self.image_type) 
+            shutil.copy(image_tmp_full_path, image_original_path)
+
+
+            image_large_path    = os.path.join(image_dir, image_id + '_large.' + self.image_type) 
+            image_thumb_path    = os.path.join(image_dir, image_id + '_thumb.' + self.image_type) 
+
+            thumbnail_width = 200
+            large_width = 1024
+
+            fd_img = open(image_tmp_full_path, 'r')
+
+            # Converting original image to larger width
+            try:   
+                print "--- Resizing image to width %s" % large_width
+                img = Image.open(fd_img)
+                img = resizeimage.resize_width(img, large_width)
+                img.save(image_large_path, img.format)
+                print "Saved larger img: %s" % (image_large_path)
+                self.image_large = image_large_path
+            except Exception as e:
+                print "Could resize image since it would require enlarging it. Referencing original path\r\n", e.message, e.args
+                image_large_path = image_original_path
+                print "Saved larger img: %s" % (image_large_path)
+            self.image_large = image_large_path
+
+
+            # Converting original image to thumbnail
+            try:   
+                print "--- Resizing image to width %s" % thumbnail_width
+                img = Image.open(fd_img)
+                img = resizeimage.resize_width(img, thumbnail_width)
+                img.save(image_thumb_path, img.format)
+                print "Saved thumb img: %s " % (image_thumb_path)
+            except Exception as e:
+                print "ERROR Could resize image since it would require enlarging it. Referencing original path\r\n", e.message, e.args
+                image_thumb_path = image_original_path
+                print "Saved thumb img: %s " % (image_thumb_path)
+            self.image_thumb = image_thumb_path
+
+            db.session.commit()
+
+        except Exception as e:
+            print "--- ERROR Could not save tmp image ", e.message, e.args
+            print "Exception ", e.message, e.args
+
 
     def insert(self):
         try:
@@ -671,7 +770,7 @@ class Venue(db.Model):
                 ven = Venue.query.filter_by(foursquare_id = kwargs['foursquare_id']).first()
                 if ven:
                     print 'Found venue id: %s, name: %s' % (ven.name, ven.id)
-                return ven
+                    return ven
             except Exception as e:
                 print "No existing venue found by searching for foursquare_id: %s" % (kwargs['foursquare_id']) 
         if kwargs['yelp_id']:
@@ -680,7 +779,7 @@ class Venue(db.Model):
                 ven = Venue.query.filter_by(yelp_id = kwargs['yelp_id']).first()
                 if ven:
                     print 'Found venue id: %s, name: %s' % (ven.name, ven.id)
-                return ven
+                    return ven
             except Exception as e:
                 print "No existing venue found by searching for yelp_id: %s" % (kwargs['yelp_id']) 
         if kwargs['tripadvisor_id']:
@@ -689,7 +788,7 @@ class Venue(db.Model):
                 ven = Venue.query.filter_by(tripadvisor_id = kwargs['tripadvisor_id']).first()
                 if ven:
                     print 'Found venue id: %s, name: %s' % (ven.name, ven.id)
-                return ven
+                    return ven
             except Exception as e:
                 print "No existing venue found by searching for tripadvisor_id: %s" % (kwargs['tripadvisor_id']) 
         if kwargs['name']:
@@ -698,7 +797,7 @@ class Venue(db.Model):
                 ven = Venue.query.filter_by(name = kwargs['name']).first()
                 if ven:
                     print 'Found venue id: %s, name: %s' % (ven.name, ven.id)
-                return ven
+                    return ven
             except Exception as e:
                 print "No existing venue found by searching for name: %s" % (kwargs['name']) 
                 #print ven

@@ -27,6 +27,10 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.sql import text
 from flask import Flask, request, session, g, redirect, url_for, abort, render_template, render_template_string, flash, jsonify, make_response
 from sqlalchemy.dialects import postgresql
+
+from PIL import Image
+from resizeimage import resizeimage
+import imghdr
 #from flaskext.mysql import MySQL
 #import MySQLdb
 
@@ -51,17 +55,87 @@ user_manager = UserManager(db_adapter, app)     # Initialize Flask-User
 #mail = Mail(app)  
 
 
-@app.route('/addemailinvite', methods=['POST'])
-#@login_required 
-def add_email_invite():
-    if request.method == 'POST':
-        email = request.form.get('email', None)
-        e = EmailInvite(email)
-        e.insert()
+# ----------------------------------------------------------------------------
+# Page Note
 
-        return jsonify(msg = "success", email = email)
-    else:
-        return jsonify(msg = "no success")
+@app.route('/saveimageslocally')
+def save_existing_images_locally():
+
+    images = UserImage.query.all()
+
+    for i in images:
+        i.save_locally()
+
+    return 'done'
+
+
+@app.route('/img')
+#@login_required 
+def img():
+
+
+    #Get Image, Save to tmp
+    image_url = 'https://upload.wikimedia.org/wikipedia/commons/4/4d/Cheeseburger.jpg'
+    #image_url =  request.form.get('image_url', None)
+    image_tmp_name = session['user_id'] + 'tmp'
+
+    image_tmp_dir = 'img/'
+    print "Getting image and saving to directory (%s) from url: \r\n %s" % (image_tmp_dir + image_tmp_name, image_url)
+    image_tmp_full_path = os.path.join(image_tmp_dir, image_tmp_name) 
+
+    try:   
+
+        f = open(image_tmp_full_path,'wb')
+        f.write(urllib.urlopen(image_url).read())
+        f.close()
+
+        i.image_type = imghdr.what(image_tmp_full_path)
+        print "Detected image type: %s" % (i.image_type)
+
+        image_id = '5'
+        image_dir = image_tmp_dir
+        image_original_path = os.path.join(image_dir, image_id + '.' + i.image_type) 
+        image_large_path = os.path.join(image_dir, image_id + '_large.' + i.image_type) 
+        image_thumb_path = os.path.join(image_dir, image_id + '_thumb.' + i.image_type) 
+
+        print "Resizing image..."
+        thumbnail_width = 200
+        large_width = 1024
+
+        fd_img = open(image_tmp_full_path, 'r')
+
+        try:   
+            print "Resizing image to width %s" % large_width
+            img = Image.open(fd_img)
+            img = resizeimage.resize_width(img, large_width)
+            img.save(image_large_path, img.format)
+            print "Saved larger img: %s" % (image_large_path)
+        except Exception as e:
+            print "Could resize image since it would require enlarging it. Referencing original path\r\n", e.message, e.args
+            image_large_path = image_original_path
+            print "Saved larger img: %s" % (image_large_path)
+
+        try:   
+            print "Resizing image to width %s" % thumbnail_width
+            img = Image.open(fd_img)
+            img = resizeimage.resize_width(img, thumbnail_width)
+            img.save(image_thumb_path, img.format)
+            print "Saved thumb img: %s " % (image_thumb_path)
+        except Exception as e:
+            print "Could resize image since it would require enlarging it. Referencing original path\r\n", e.message, e.args
+            image_thumb_path = image_original_path
+            print "Saved thumb img: %s " % (image_thumb_path)
+
+    except Exception as e:
+        print "Could not save tmp image ", e.message, e.args
+        print "Exception ", e.message, e.args
+
+    return 'a'
+
+
+    
+    
+    
 
 # ----------------------------------------------------------------------------
 # Page Note
@@ -245,7 +319,6 @@ def add_note():
         source_id = request.form.get('source_id', None)
         source = request.form.get('source', None)
 
-
         v = Venue(
             request.form.get('name', None), 
             source,
@@ -397,6 +470,7 @@ def add_note():
                 ui.find()
                 if not ui.id:
                     ui.insert()
+                    ui.save_locally()
                 response = jsonify(user_image_id = ui.id, venue_id = uv.venue_id, image_url = ui.image_url, msg = "Inserted image: %s" % ui.image_url )
             else:
                 response = jsonify(venue_id = uv.venue_id, msg = "...")
@@ -436,6 +510,7 @@ def add_note():
                 ui.find()
                 if not ui.id:
                     ui.insert()
+                    ui.save_locally()
                 response = jsonify(user_image_id = ui.id, venue_id = uv.venue_id, image_url = ui.image_url, msg = "Inserted image: %s" % ui.image_url )
             else:
                 response = jsonify(venue_id = uv.venue_id, msg = "...")
@@ -534,6 +609,7 @@ def add_note():
             ui.find()
             if not ui.id:
                 ui.insert()
+                ui.save_locally()
             response = jsonify(user_image_id = ui.id, page_id = p.id, image_url = ui.image_url, msg = "Inserted image: %s" % ui.image_url )
 
             """
@@ -756,7 +832,7 @@ def show_venues(id):
 def update_sequence_keys():
 
 
-    all_tables = ['location','venue','venue_category','user_venue','note','page','user_page','page_note']
+    all_tables = ['location','venue','venue_category','user_venue','note','page','user_page','page_note','user_image']
 
     for table in all_tables:
         print "table: ", table
@@ -911,7 +987,7 @@ def get_countries():
 def get_cities():
 
     q = request.args.get('q', None)
-    test = request.args.get('test', None)
+    #test = request.args.get('test', None)
 
     #!!! add user
     if q:
@@ -1023,6 +1099,8 @@ def get_pages_with_notes():
         for img_row in row.images:
             item = dict(
                 image_url = img_row.image_url,
+                image_large = img_row.image_large.replace('app',''),
+                image_thumb = img_row.image_thumb.replace('app',''),
                 id = img_row.id
                 )
             images_array.append(item)
@@ -1054,8 +1132,8 @@ def get_venues_with_notes():
 
     #Query Venues, apply filters
     #!!! Move to model
-    venues_result_set = Venue.query.join(Location).join(UserVenue).outerjoin(UserImage).join(Note) \
-                            .filter(Note.user_id == session['page_user_id']) \
+    venues_result_set = Venue.query.join(Location).join(UserVenue).outerjoin(UserImage).outerjoin(Note) \
+                            .filter(UserVenue.user_id == session['page_user_id']) \
                             .order_by(UserVenue.user_rating.desc()) \
 
 
@@ -1096,7 +1174,7 @@ def get_venues_with_notes():
         print "~~~ user_rating:", session['user_rating']
         venues_result_set = venues_result_set.filter(UserVenue.user_rating == session['user_rating'])
     #print '-'*50
-    venues_result_set = venues_result_set.limit(200)
+    venues_result_set = venues_result_set.limit(300)
 
     print "--- Get Venue SQL: \r\n", 
     print str(venues_result_set.statement.compile(dialect=postgresql.dialect()))
@@ -1127,6 +1205,8 @@ def get_venues_with_notes():
         for img_row in row.images:
             item = dict(
                 image_url = img_row.image_url,
+                image_large = img_row.image_large.replace('app',''),
+                image_thumb = img_row.image_thumb.replace('app',''),
                 id = img_row.id
                 )
             images_array.append(item)
@@ -1503,6 +1583,7 @@ def str_to_float(str):
         str = float(str.strip())
 
     return str
+
 
 @app.teardown_appcontext
 def shutdown_session(exception=None):

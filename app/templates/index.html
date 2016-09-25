@@ -12,23 +12,18 @@
     <title>It Lyst </title> 
 
 
-    <!-- Bootstrap -->
-    <!--<link href="../vendors/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet">-->
+
+
     <link href="/static/css/bootstrap.min.css" rel="stylesheet">
-
-    <!-- Font Awesome -->
-    <!--<link href="../vendors/font-awesome/css/font-awesome.min.css" rel="stylesheet">-->
     <link href="/static/css/font-awesome.min.css" rel="stylesheet">
-
-    <!-- NProgress -->
-    <!--<link href="../vendors/nprogress/nprogress.css" rel="stylesheet">-->
     <link href="/static/css/nprogress.css" rel="stylesheet">
 
-    <!-- Custom Theme Style -->
-    <!--<link href="../build/css/custom.min.css" rel="stylesheet">-->
     <link href="/static/css/custom.min.css" rel="stylesheet">
-
     <link href="/static/css/style.css" rel="stylesheet">
+
+    <link href='https://fonts.googleapis.com/css?family=Open+Sans:400,300,700' rel='stylesheet' type='text/css'>
+
+
 
 
 
@@ -74,7 +69,7 @@
                   <!-- City filter -->
                   <li id='citysearchmenu' c><a><i class="fa fa-bank" ></i> City <span class="fa fa-chevron-down"></span></a>
                     <ul class="nav child_menu">
-                      <li>
+                      <li s>
                         {% if session['city'] %}
                           <div style="height: 65px;" id='selectedcitydiv'>
                             <button type="button" class="btn btn-default" id='selectedcity'>{{ session['city'] }}<i class="fa fa-remove" ></i></button><br><br>
@@ -411,6 +406,7 @@
                       {% set venue_nbr = 0 %}
                       {% for datum in venues %}
 
+
                         <div>
                         
                         <li class="dropdown">
@@ -425,7 +421,7 @@
                             </li>
                           </ul>
                           {% endif %}
-                        <button type='button' class='venue-click' data-nbr={{venue_nbr}}>{{venue_nbr + 1}}. {{ datum.name }}</button>
+                        <button type='button' class='venue-click' data-nbr={{venue_nbr}}>{{venue_nbr + 1}}. {{ datum.name | truncate(30, True) }}</button>
                         <!--<button type='button' class='venue-click visible-xs' data-nbr={{venue_nbr}}>{{venue_nbr + 1}}. {{ datum.name | truncate(30)}}</button>-->
                         {% if datum.foursquare_rating %}
                           {{ datum.foursquare_rating }}, {{ datum.foursquare_reviews }} tips
@@ -459,7 +455,7 @@
                         {% endif %}
 
                         </li>
-                        <ul id='venue{{ datum.id }}'>
+                        <ul id='venue{{ datum.id }}' style="font-family: 'Open Sans'">
                         {% for note in datum.notes %}
                             <li id='v{{datum.id}}_n{{note.id}}' venue_id='{{ datum.id }}' note_id='{{ note.id }}' class='venuenote'  
                             onmouseover="emphasizeNote(this)" onmouseout="deemphasizeNote(this)" data-nbr={{venue_nbr}}>
@@ -489,7 +485,7 @@
                         
                         {% for image in datum.images %}
                           <span class=image>
-                            <img src={{ image.image_url  }} class='venueimage' id='v{{datum.id}}_i{{image.id}}'><span class=pageimage>{% if session.can_edit %}<a class=deletesymbolimage href='/deleteimage/id/{{ image.id }}' ><i class='fa fa-trash-o faicons'></i></a></span>{% endif %}
+                            <img src='{{ image.image_thumb  }}' src_large='{{ image.image_large  }}' class='venueimage' id='v{{datum.id}}_i{{image.id}}'><span class=pageimage>{% if session.can_edit %}<a class=deletesymbolimage href='/deleteimage/id/{{ image.id }}' ><i class='fa fa-trash-o faicons'></i></a></span>{% endif %}
                            </span>
                            &nbsp;
                         {% endfor %}
@@ -1458,17 +1454,17 @@ $(document).click(function(event) {
         //element.style.borderRadius = "";
       }
 
-
+    // Enlarge Image on Click
      $(document).click(function() {
 
        var currentMaxHeight = $("#" + event.target.id).css('max-height') ;
        //console.log(currentMaxHeight);
         
-
         //Expand and Shrink Images
         if ((event.target.className == 'pageimage' || event.target.className == 'venueimage') //) {
              && (currentMaxHeight == "140px")) {
 
+            //Resize all other images back to original height
             $(".pageimage").css({
                  maxHeight: "140px", 
                  maxWidth: "140px"
@@ -1477,12 +1473,16 @@ $(document).click(function(event) {
                  maxHeight: "140px", 
                  maxWidth: "140px"
              });
+
+            //S
+            $("#" + event.target.id).attr('src',$("#" + event.target.id).attr('src_large')); 
+
             $("#" + event.target.id).css({
                  //maxHeight: "500px", 
                  //maxWidth: "600px"
 
                  maxHeight: "100%", 
-                 maxWidth: "100%"
+                 maxWidth: "70%"
              });
             //event.target.id = "500px";
         } else {
